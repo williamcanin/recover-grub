@@ -1,0 +1,229 @@
+#!/usr/bin/env bash
+#
+# ******************************************************************************
+# Type: Shell script
+# Description: Mount and Recover Grub on Arch Linux.
+# Script Name: Recover Grub
+# Release Status: 1.0.0
+# Project URL: https://github.com/williamcanin/recover-grub.git
+# RAW: http://git.io/
+
+# Author: William C. Canin
+#   E-Mail: william.costa.canin@gmail.com
+#   Home page: http://williamcanin.com
+
+
+# License:
+# The MIT License (MIT) for Recover Grub
+
+# Copyright (c) 2015 William C. Canin <william.costa.canin@gmail.com>
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# ******************************************************************************
+#
+# < NOTES
+#
+# Texts colors
+#
+# Red > \033[30;0;5;31m
+# Green > \033[30;0;5;32m
+# Orange > \033[30;0;5;33m
+# Yellow > \033[30;0;5;?m
+# Blue="\033[30;0;5;34m
+# Cyan > \033[30;0;5;36m
+# White > \033[30;0;5;1m
+# Gray > \033[30;0;5;2m
+# Violet >
+# Pink >
+
+# Backgrounds colors
+#
+# Green > \033[30;48;5;34m
+# Cyan > \033[30;48;5;36m
+# White > \033[30;48;5;7m
+#
+#  NOTES >
+#
+#
+# ----- Begin - Variables global.
+#
+MOUNT_ROOT="/mnt"
+NAME_SCRIPT_FANTASY="Recover Grub"
+SCRIPT_EXEC="recover-grub"
+SCRIPT_RECOVER="$MOUNT_ROOT/usr/bin/$SCRIPT_EXEC"
+SCRIPT_GIT="$SCRIPT_EXEC.git"
+GRUB_CFG="/boot/grub/grub.cfg"
+DEVICE="$2"
+# Colors variables
+Orange="\033[30;0;5;33m"
+Red="\033[30;0;5;31m"
+White="\033[30;0;5;1m"
+Green="\033[30;0;5;32m"
+Blue="\033[30;0;5;34m"
+None="\033[00m"
+
+#
+# ----- End - Variables global.
+
+# --------------------------------------------------------------------------------
+
+# ----- Begin - Functions
+#
+
+function _CREATE_SCRIPT_RECOVER(){
+
+cat << EOF > $SCRIPT_RECOVER
+'%
+#!/usr/bin/env bash
+#
+# ******************************************************************************
+# Type: Shell script
+# Description: Create with - $NAME_SCRIPT_FANTASY (Recover Grub on Arch Linux).
+# Script Name: Grub Recover
+# Release Status: 1.0.0
+# Author: William C. Canin <william.costa.canin@gmail.com> <http://williamcanin.com>
+# License: (MIT)
+#
+# Colors variables
+Orange="\033[30;0;5;33m"
+Red="\033[30;0;5;31m"
+White="\033[30;0;5;1m"
+Green="\033[30;0;5;32m"
+Blue="\033[30;0;5;34m"
+None="\033[00m"
+
+function _MAIN(){
+  printf "\n\${Orange}Grub Ransom is starting to update Grub.\nWait ...\${None}\n\n"
+  grub-mkconfig -o $GRUB_CFG
+  grub-install /dev/$DEVICE
+  rm -f $SCRIPT_RECOVER
+  printf "\n\${Green}Update and complete recovery!\${None}\n\n"
+  printf "\n\${Green}Use command: exit && reboot\${None}\n\n"
+  exit 0
+}
+case "\$1" in
+  recover )
+      if [[ "\$(id -u)" == 0 ]]; then
+        _MAIN
+       else
+        printf "\n\${Red}[x] The script must be run as root.\${None}\n\n"
+        exit 0
+      fi
+    ;;
+  *)
+    printf "\nUsage: \$0 recover\n\n"
+    ;;
+esac
+exit 0
+'%
+EOF
+
+  # Transforming file in Shell Script
+  sed -i "/'%/d" $SCRIPT_RECOVER
+  # Permission script
+  chmod +x $SCRIPT_RECOVER
+
+}
+
+function _RECOVER_ORIENTATION(){
+
+  printf "\n${Orange}| ======================================= |"
+  printf "\n|      $NAME_SCRIPT_FANTASY -   Recover          |"
+  printf "\n| ======================================= |\n"
+  printf "\n$NAME_SCRIPT_FANTASY will enter into the chroot, so you enter command needed to recover the Grub.\n\n"
+  printf "\nThe command is:${None}\n"
+  printf "\n${Blue}# $SCRIPT_EXEC recover ${None}\n"
+  printf "\n${Orange}If you are prepared to enter the command, press the [ENTER] key.${Orange}\n\n"
+  read
+
+}
+
+function _CATCH_DEVICE(){
+
+  NUMBERS_PARTITION_EXT4=$(lsblk -f | grep ext4 | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
+  for i in $NUMBERS_PARTITION_EXT4; do
+    mount -t ext4 /dev/$DEVICE$i $MOUNT_ROOT
+    if [[ -f "$MOUNT_ROOT/etc/os-release" ]]; then
+      DISTRO_NAME=$(cat $MOUNT_ROOT/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
+      if [[ "$DISTRO_NAME" == "Arch Linux" ]]; then
+
+        printf "\n$DISTRO_NAME device found!\n\n"
+
+        _CREATE_SCRIPT_RECOVER
+
+        printf "\n${Orange}| ======================================= |"
+        printf "\n|      $NAME_SCRIPT_FANTASY -   Mount          |"
+        printf "\n| ======================================= |\n"
+        printf "\nRiding $DISTRO_NAME partitions ...${None}\n"
+        mount --bind /dev $MOUNT_ROOT/dev
+        mount --bind /dev/pts $MOUNT_ROOT/dev/pts
+        mount --bind /proc $MOUNT_ROOT/proc
+        mount --bind /sys $MOUNT_ROOT/sys
+        printf "${Green}Done!${None}\n\n"
+
+        _RECOVER_ORIENTATION
+
+        chroot $MOUNT_ROOT /bin/bash
+
+        # Umount
+        printf "\n${Orange}Disassembling units ...${None}\n"
+        umount $MOUNT_ROOT/dev/pts
+        umount $MOUNT_ROOT/dev
+        umount $MOUNT_ROOT/proc
+        umount $MOUNT_ROOT/sys
+        umount $MOUNT_ROOT
+        printf "${Green}Done!${None}\n\n"
+
+        exit 0
+
+      else
+        umount $MOUNT_ROOT
+        printf "\n${Orange}[ WARNING ]Device ($DEVICE$i) not compatible with $DISTRO_NAME. Dismounted.${None}\n\n"
+      fi
+    fi
+  done
+
+}
+
+#
+# ----- End - Functions
+
+# --------------------------------------------------------------------------------
+
+# ----- Begin - Menu
+#
+
+case "$1" in
+
+   device)
+      _CATCH_DEVICE "$2"
+    ;;
+   help)
+    printf "\nExample: # bash $0 device sda\n\n"
+    printf "${Blue}More informations: https://github.com/williamcanin/$SCRIPT_GIT${None}\n\n"
+   ;;
+    *)
+      printf "\n* Usage: bash $0 device <sda|sdb|sdc> | help\n\n"
+    ;;
+
+esac
+exit 0
+
+#
+# ----- End - Menu

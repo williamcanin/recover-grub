@@ -1,0 +1,76 @@
+Grub Ransom - Version 1.0.0
+
+
+
+[ ABOUT ]
+
+  "Grub Ransom" é um script shell que permite a recuperação do Grub
+  Linux de uma forma mais automática, não precisando o usuário
+  lembrar e digitar comandos complicados.
+
+
+[ COMPATIBILIDADE ]
+
+  Por padrão, o "Grub Ransom" é compativel apenas com a
+  distribuição Arch Linux.
+
+
+[ USAGE ]
+
+  A - Insira o CD/DVD (ou Pendrive Bootável) da distribuição Arch Linux
+      na máquina e dê boot.
+
+  B - Após iniciar o terminal do Arch Linux, deve realizar uma conexão
+      com a internet para instalar o Git e fazer o clone do "Grub Ransom".
+      Se a máquina está conectada através de um cabo de rede, provavelmente
+      a conexão já está disponivel. Se for conexão por Wifi, use o comando:
+
+      # wifi-menu
+
+      Esse comando vai possibilitar uma configuração com a internet através
+      do wifi. Quando configurar sua conexão, use o comando abaixo para pingar
+      e testar a conexão com a internet:
+
+      # ping -c3 <site qualquer>
+
+  C - Com a internet ativa, é necessário atualizar o cache do pacman e
+      instalar o pacote "git".
+      Para fazer isso use o comando abaixo:
+
+      # pacman -Sy && pacman -S git --noconfirm
+
+  D - Git instalado. Chegou a hora de configura-lo e realizar o
+      clone do "Grub Ransom" ...
+      executando os comandos abaixo:
+
+      # git config --global user.email "<Seu E-mail>"
+      # git config --global user.email "<Seu Nome>"
+      # git clone https://github.com/williamcanin/grub-ransom.git
+      # cd grub-ransom
+
+  E - Fazendo o "Grub Ransom" trabalhar:
+      Nesse momento o terminal está dentro da pasta do "Grub Ransom", e o
+      que você tem que fazer é apenas executar o comando para iniciar
+      a recuperação do Grub com "Grub Ransom".
+      Para isso, você deve saber qual dispositivo o Arch Linux está
+      instalado, por exemplo: sda, sdb, sdc,... etc.
+      Após saber qual o dispositivo, execute o comando abaixo:
+
+      # grub-ransom device <sda|sdb|sdc...>
+
+  F - Após o "Grub Ransom" iniciar, o mesmo irá entrar na seção de
+      Montagem para montar a partição onde o Arch Linux está instalado e
+      posteriormente entrar na seção de recuperação do Grub, onde
+      irá pedir para que o usuário insira o comando de recuperação.
+      Siga os passos, não tem como errar!
+
+
+[ LICENSE ]
+
+  MIT License (MIT)
+  https://opensource.org/licenses/MIT
+
+
+---------------------------------------------------------
+ © Grub Ransom. William C. Canin. All rights reserved. ®
+---------------------------------------------------------
