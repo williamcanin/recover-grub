@@ -1,17 +1,17 @@
-Grub Ransom - Version 1.0.0
+Recover Grub - Version 1.0.0
 
 
 
 [ ABOUT ]
 
-  "Grub Ransom" is a shell script that allows recovery the Grub
+  "Recover Grub" is a shell script that allows recovery the Grub
   in Linux in a more automatic way, not needing the user
   remember and type complicated commands.
 
 
 [ COMPATIBILITY ]
 
-  By default, the "Grub Ransom" is compatible only with the
+  By default, the "Recover Grub" is compatible only with the
   Arch Linux distribution.
 
 
@@ -21,44 +21,37 @@ Grub Ransom - Version 1.0.0
       the machine and give boot.
 
   B - After starting the terminal Arch Linux, you must make a connection
-      with the internet to install Git and do clone "Grub Ransom".
+      with the internet to install Git and do clone "Recover Grub".
       If the machine is connected via a network cable, probably
       the connection is already available. If connection by Wifi,
       use the command:
 
-      # wifi-menu
+        # wifi-menu
 
       This command will enable a setting with the internet through
       of wifi. When setting up your connection, use the following
       command to ping and test the connection to the internet:
 
-      # ping -c3 <any site>
+        # ping -c3 <any site>
 
-  C - With the active internet, you must update the cache of pacman
-      and install the package "git".
-      To do this use the following command:
+  C - With the active internet may have to download the
+      "Recover Grub". To do this, run the following command:
 
-      # pacman -Sy && pacman -S git --noconfirm
+        # curl -L git.io/recover-grub -o recover-grub
 
-  D - Git installed. It's time to set it up and carry the
-      clone of "Grub Ransom"... running the commands below:
+        or
 
-      # git config --global user.email "<Your Email>"
-      # git config --global user.email "<Your Name>"
-      # git clone https://github.com/williamcanin/grub-ransom.git
-      # cd grub-ransom
+        # wget git.io/recover-grub
 
-  E - < Making "Grub Ransom" work: >
-      At this moment, the terminal is inside the folder "Grub Ransom",
-      and what you have to do is just run the command to start the
-      recovery of Grub to "Grub Ransom".
-      For this, you should know which device the Arch Linux is installed.
-      For example: sda, sdb, sdc,... etc.
-      After learning that the device, run the following command:
+  D - With the "Recover Grub" in hand, the next step is run it to
+      initiate the recovery of Grub.
+      However, you should know which device was installed Arch Linux,
+      for example: sda, sdb, sdc,... etc.
+      After, run the following command:
 
-      # grub-ransom device <sda|sdb|sdc...>
+        # recover-grub device <sda|sdb|sdc...>
 
-  F - After the "Grub Ransom" start, you will enter the assembly section
+  E - After the "Recover Grub" start, you will enter the assembly section
       to mount the partition where the Arch Linux is installed and
       subsequently to the recovery section of Grub where will ask the
       user to enter the recovery command.
@@ -72,5 +65,5 @@ Grub Ransom - Version 1.0.0
 
 
 ---------------------------------------------------------
- © Grub Ransom. William C. Canin. All rights reserved. ®
+ © Recover Grub. William C. Canin. All rights reserved. ®
 ---------------------------------------------------------
