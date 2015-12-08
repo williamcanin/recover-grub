@@ -6,7 +6,7 @@
 # Script Name: Recover Grub
 # Release Status: 1.0.0
 # Project URL: https://github.com/williamcanin/recover-grub.git
-# RAW: http://git.io/
+# RAW: http://git.io/recover-grub
 
 # Author: William C. Canin
 #   E-Mail: william.costa.canin@gmail.com
@@ -95,9 +95,13 @@ cat << EOF > $SCRIPT_RECOVER
 # ******************************************************************************
 # Type: Shell script
 # Description: Create with - $NAME_SCRIPT_FANTASY (Recover Grub on Arch Linux).
-# Script Name: Grub Recover
+# Script Name: $NAME_SCRIPT_FANTASY
 # Release Status: 1.0.0
-# Author: William C. Canin <william.costa.canin@gmail.com> <http://williamcanin.com>
+
+# Author: William C. Canin
+#   E-Mail: william.costa.canin@gmail.com
+#   Home page: http://williamcanin.com
+
 # License: (MIT)
 #
 # Colors variables
