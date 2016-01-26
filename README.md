@@ -1,4 +1,4 @@
-# Recover Grub - Version 1.0.0 <img src="https://raw.githubusercontent.com/williamcanin/recover-grub/master/logotype/recover-grub-icon.svg" alt="Recover Grub Logotype" width="7%" height="7%"/>
+# Recover Grub - Version 1.0.0 <img src="https://raw.githubusercontent.com/williamcanin/recover-grub/master/logotype/recover-grub-icon.png" alt="Recover Grub Logotype" width="7%" height="7%"/>
 
 
 
@@ -64,6 +64,4 @@
   https://opensource.org/licenses/MIT
 
 
----------------------------------------------------------
  © Recover Grub. William C. Canin. All rights reserved. ®
----------------------------------------------------------
