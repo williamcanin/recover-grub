@@ -71,11 +71,11 @@ SCRIPT_GIT="$SCRIPT_EXEC.git"
 GRUB_CFG="/boot/grub/grub.cfg"
 DEVICE="$2"
 # Colors variables
-Orange="\033[30;0;5;33m"
-Red="\033[30;0;5;31m"
-White="\033[30;0;5;1m"
-Green="\033[30;0;5;32m"
-Blue="\033[30;0;5;34m"
+Orange="\033[30;0;33m"
+Red="\033[30;0;31m"
+White="\033[30;0;1m"
+Green="\033[30;0;32m"
+Blue="\033[30;0;34m"
 None="\033[00m"
 
 #
@@ -90,7 +90,7 @@ function _CREATE_SCRIPT_RECOVER(){
 
 cat << EOF > $SCRIPT_RECOVER
 '%
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # ******************************************************************************
 # Type: Shell script
@@ -105,11 +105,11 @@ cat << EOF > $SCRIPT_RECOVER
 # License: (MIT)
 #
 # Colors variables
-Orange="\033[30;0;5;33m"
-Red="\033[30;0;5;31m"
-White="\033[30;0;5;1m"
-Green="\033[30;0;5;32m"
-Blue="\033[30;0;5;34m"
+Orange="\033[30;0;33m"
+Red="\033[30;0;31m"
+White="\033[30;0;1m"
+Green="\033[30;0;32m"
+Blue="\033[30;0;34m"
 None="\033[00m"
 
 function _MAIN(){
