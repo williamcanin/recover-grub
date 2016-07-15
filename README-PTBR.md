@@ -48,8 +48,10 @@
       dar inicio a recuperação do Grub.
       Pórem, você deve saber qual dispositivo o Arch Linux foi
       instalado, por exemplo: sda, sdb, sdc,... etc.
+      ATENÇÃO !!! Não é a partição, é o disco. (sda,sdb,etc...)
       Após saber qual o dispositivo, execute o comando abaixo:
 
+        # chmod +x recover-grub
         # recover-grub device <sda|sdb|sdc...>
 
   E - Após o "Recover Grub" iniciar, o mesmo irá entrar na seção de
