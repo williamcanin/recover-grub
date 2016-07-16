@@ -68,6 +68,7 @@ Wait="[${White} Wait ${None}]"
 exportpath="false"
 device_choose="null"
 mount_device_status="false"
+search_os_release="false"
 
 # Variables
 mount_dir="/mnt"
@@ -183,13 +184,20 @@ function _finishing(){
 function _mount_device(){
   _check_current_system
   if [[ $mount_device_status == "false" ]]; then
-    # Create array
-    number_partitions= ( $(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n) )
-    for i in ${number_partitions[@]}; do
+    # Create arrays
+    partitions=$(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
+    npartitions=( $(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n) )
+    npartitions_refactored="$(expr ${#npartitions[@]} - 1)"
+    for i in ${partitions}; do
+      # for (( x = 0; x < ${#npartitions[@]}; i++ )); do
+      #   if [[ condition ]]; then
+      #     #statements
+      #   fi
+      # done
+
       mount -t $type_partition /dev/$device$i $mount_dir
-      if [[ -f "$mount_dir/etc/os-release" ]]; then
-        distro_name=$(cat $mount_dir/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
-        if [[ "$distro_name" == "Arch Linux" ]]; then
+      distro_name=$(cat $mount_dir/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
+      if [[ -f "$mount_dir/etc/os-release" ]] && [[ "$distro_name" == "Arch Linux" ]]; then
           # Set config
           sed -i "s|^device_choose=.*|device_choose=\"$device\"|g" $0
           sed -i "s|^mount_device_status=.*|mount_device_status=\"true\"|g" $0
@@ -215,10 +223,9 @@ function _mount_device(){
           # Load function _finishing
           _finishing
           break
+        else
+          umount $mount_dir
         fi
-       # else
-       #  printf "${Error} ${White} Sorry, but it seems that the mounted partitions did not return the file: \"/etc/os-release\" :(\n${None}"
-      fi
     done
   fi
 }
@@ -241,36 +248,75 @@ function _recover_grub_start(){
 }
 
 
-#cada palavra do arquivo vira um elemento do array
+number_partitions=( $(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n) )
+partitions=$(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
 
-array=( $(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n) )
+echo "Number Partition: ${number_partitions}"
+echo "Partitions: ${partitions}"
 
-# agora vamos exibir o conteúdo
-for i in ${array[@]}; do
-if [[ $i == 5 ]]; then
-  echo "achou"
-  break
-else
-  echo "não achou"
-  # break
-fi
+for (( i = 0; i < ${#number_partitions[@]}; i++ )); do
+
+  # for x in $partitions; do
+  #   if [[ $x == 4 ]]; then
+  #     echo "arch linux"
+  #     break
+  #   fi
+  # done
+
+
+  verify="$(expr ${#number_partitions[@]} - 1)"
+  if [[ $i == $verify ]] && [[ ! -f "./etc/os-release" ]]; then
+    printf "Partições sem sistema operacional\n"
+    # break
+  fi
 done
 
-# while [[ condition ]]; do
-#   #statements
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#   for x in 2 5 4 7 6; do
+#     if [[ $x  ]]; then
+#       #statements
+#     fi
+#   done
+
+# if [[ $search_os_release == "false" ]]; then
+#  printf "${Error} ${White} Sorry, but it seems that the mounted partitions did not return the file: \"/etc/os-release\" :(\n${None}"
+# fi
+
+
+
+# NAMESERVERS=("ns1.nixcraft.net." "ns2.nixcraft.net." "ns3.nixcraft.net.")
+
+# # get length of an array
+# tLen=${#NAMESERVERS[@]}
+
+# # use for loop read all nameservers
+# for (( i=0; i<${tLen}; i++ ));
+# do
+#   echo ${NAMESERVERS[$i]}
 # done
 
-# vet=(2 1 3 5 6 2)
-# for i in $vet ; do
-#   if [[ $i == 2 ]]; then
-#     echo "dois"
-#   else
-#     echo "dois não encontrado"
-#     break
-#     # exit 1
-#   fi
-# done
-
+# distro=("redhat" "debian" "gentoo")
+# echo ${distro[0]}
+# echo ${#distro[@]}
 
 # Menu
 # case "$1" in
