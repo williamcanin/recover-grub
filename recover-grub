@@ -182,6 +182,7 @@ function _finishing(){
   umount -R $mount_dir
   printf "${Ok} Dismantling made partitions!\n"
   printf "${Ok} ${White}Successfully restructured Grub! No error! \n${None}"
+  printf "${Ok} ${White}Now you can restart the machine with the command: ${BBlue}reboot \n${None}"
   rm -f $0
 }
 
