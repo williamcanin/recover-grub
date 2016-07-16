@@ -1,16 +1,16 @@
-#!/usr/bin/env bash
+#!/bin/bash
 #
 # ******************************************************************************
-# Type: Shell script
-# Description: Mount and Recover Grub on Arch Linux.
+# Type: Shell Script
+# Description: Mount partition Arch Linux and Recover the Grub on Arch Linux
 # Script Name: Recover Grub
-# Release Status: 1.0.0
+# Release Status: 1.1.0
 # Project URL: https://github.com/williamcanin/recover-grub.git
-# RAW: http://git.io/recover-grub
+# URL Script: http://git.io/recover-grub
 
 # Author: William C. Canin
 #   E-Mail: william.costa.canin@gmail.com
-#   Home page: http://williamcanin.com
+#   Home page: http://williamcanin.guthub.io
 
 
 # License:
@@ -37,197 +37,170 @@
 # SOFTWARE.
 # ******************************************************************************
 #
-# < NOTES
-#
-# Texts colors
-#
-# Red > \033[30;0;31m
-# Green > \033[30;0;32m
-# Orange > \033[30;0;33m
-# Yellow > \033[30;0;?m
-# Blue="\033[30;0;34m
-# Cyan > \033[30;0;36m
-# White > \033[30;0;1m
-# Gray > \033[30;0;2m
-# Violet >
-# Pink >
 
-# Backgrounds colors
+# Constants
 #
-# Green > \033[30;48;5;34m
-# Cyan > \033[30;48;5;36m
-# White > \033[30;48;5;7m
-#
-#  NOTES >
-#
-#
-# ----- Begin - Variables global.
-#
-MOUNT_ROOT="/mnt"
-NAME_SCRIPT_FANTASY="Recover Grub"
-SCRIPT_EXEC="recover-grub"
-SCRIPT_RECOVER="$MOUNT_ROOT/usr/bin/$SCRIPT_EXEC"
-SCRIPT_GIT="$SCRIPT_EXEC.git"
-GRUB_CFG="/boot/grub/grub.cfg"
-DEVICE="$2"
-# Colors variables
+exportpath="false"
+device="$2"
+device_choose="null"
+mount_device_status="false"
+year_current="$(date +%Y)"
 Orange="\033[30;0;33m"
 Red="\033[30;0;31m"
 White="\033[30;0;1m"
 Green="\033[30;0;32m"
 Blue="\033[30;0;34m"
 None="\033[00m"
+Error="[${Red} Error ${None}]"
+Warning="[${Orange} Warning ${None}]"
+Ok="[${Green} Ok ${None}]"
+Wait="[${White} Wait ${None}]"
 
+
+# Variables
 #
-# ----- End - Variables global.
+mount_dir="/mnt"
+type_partition="ext4"
+program_name="Recover Grub"
+version="1.1.1"
+executable="recover-grub"
+path_script="${mount_dir}/"
 
-# --------------------------------------------------------------------------------
 
-# ----- Begin - Functions
-#
 
-function _CREATE_SCRIPT_RECOVER(){
 
-cat << EOF > $SCRIPT_RECOVER
-'%
-#!/bin/bash
-#
-# ******************************************************************************
-# Type: Shell script
-# Description: Create with - $NAME_SCRIPT_FANTASY (Recover Grub on Arch Linux).
-# Script Name: $NAME_SCRIPT_FANTASY
-# Release Status: 1.0.0
+# Credits
+function _credits(){
+cat << EOT
 
-# Author: William C. Canin
-#   E-Mail: william.costa.canin@gmail.com
-#   Home page: http://williamcanin.com
+ ---------------------------------------------------------
+|               ${program_name} - Version ${version}              |
+ ---------------------------------------------------------
+|                         Credits:                        |
+|                                                         |
+|           Author: William da Costa Canin                |
+|           E-Mail: william.costa.canin@gmail.com         |
+|           Homepage: http://williamcanin.github.io       |
+|           Locale: Brazil - SP                           |
+|                                                         |
+|                                                         |
+|    ${program_name} © 2015-$year_current - All Right Reserved.       |
+|    Page: http://github.com/williamcanin/recover-grub    |
+|---------------------------------------------------------|
 
-# License: (MIT)
-#
-# Colors variables
-Orange="\033[30;0;33m"
-Red="\033[30;0;31m"
-White="\033[30;0;1m"
-Green="\033[30;0;32m"
-Blue="\033[30;0;34m"
-None="\033[00m"
-
-function _MAIN(){
-  printf "\n\${Orange}Grub Ransom is starting to update Grub.\nWait ...\${None}\n\n"
-  grub-mkconfig -o $GRUB_CFG
-  grub-install /dev/$DEVICE
-  rm -f $SCRIPT_RECOVER
-  printf "\n\${Green}Update and complete recovery!\${None}\n\n"
-  printf "\n\${Green}Use command: exit && reboot\${None}\n\n"
-  exit 0
-}
-case "\$1" in
-  recover )
-      if [[ "\$(id -u)" == 0 ]]; then
-        _MAIN
-       else
-        printf "\n\${Red}[x] The script must be run as root.\${None}\n\n"
-        exit 0
-      fi
-    ;;
-  *)
-    printf "\nUsage: \$0 recover\n\n"
-    ;;
-esac
-exit 0
-'%
-EOF
-
-  # Transforming file in Shell Script
-  sed -i "/'%/d" $SCRIPT_RECOVER
-  # Permission script
-  chmod +x $SCRIPT_RECOVER
-
+EOT
 }
 
-function _RECOVER_ORIENTATION(){
-
-  printf "\n${Orange}| ======================================= |"
-  printf "\n|      $NAME_SCRIPT_FANTASY -   Recover          |"
-  printf "\n| ======================================= |\n"
-  printf "\n$NAME_SCRIPT_FANTASY will enter into the chroot, so you enter command needed to recover the Grub.\n\n"
-  printf "\nThe command is:${None}\n"
-  printf "\n${Blue}# $SCRIPT_EXEC recover ${None}\n"
-  printf "\n${Orange}If you are prepared to enter the command, press the [ENTER] key.${Orange}\n\n"
-  read
-
+# Export Path
+function _export_path(){
+  if [[ $exportpath == "false" ]]; then
+    PATH="$PATH:./"
+    export PATH
+    sed -i "s|^  exportpath=.*|  exportpath=\"true\"|g" $0
+  fi
 }
 
-function _CATCH_DEVICE(){
 
-  NUMBERS_PARTITION_EXT4=$(lsblk -f | grep ext4 | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
-  for i in $NUMBERS_PARTITION_EXT4; do
-    mount -t ext4 /dev/$DEVICE$i $MOUNT_ROOT
-    if [[ -f "$MOUNT_ROOT/etc/os-release" ]]; then
-      DISTRO_NAME=$(cat $MOUNT_ROOT/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
-      if [[ "$DISTRO_NAME" == "Arch Linux" ]]; then
-
-        printf "\n$DISTRO_NAME device found!\n\n"
-
-        _CREATE_SCRIPT_RECOVER
-
-        printf "\n${Orange}| ======================================= |"
-        printf "\n|      $NAME_SCRIPT_FANTASY -   Mount          |"
-        printf "\n| ======================================= |\n"
-        printf "\nRiding $DISTRO_NAME partitions ...${None}\n"
-        mount --bind /dev $MOUNT_ROOT/dev
-        mount --bind /dev/pts $MOUNT_ROOT/dev/pts
-        mount --bind /proc $MOUNT_ROOT/proc
-        mount --bind /sys $MOUNT_ROOT/sys
-        printf "${Green}Done!${None}\n\n"
-
-        _RECOVER_ORIENTATION
-
-        chroot $MOUNT_ROOT /bin/bash
-
-        # Umount
-        printf "\n${Orange}Disassembling units ...${None}\n"
-        umount $MOUNT_ROOT/dev/pts
-        umount $MOUNT_ROOT/dev
-        umount $MOUNT_ROOT/proc
-        umount $MOUNT_ROOT/sys
-        umount $MOUNT_ROOT
-        printf "${Green}Done!${None}\n\n"
-
-        exit 0
-
-      else
-        umount $MOUNT_ROOT
-        printf "\n${Orange}[ WARNING ]Device ($DEVICE$i) not compatible with $DISTRO_NAME. Dismounted.${None}\n\n"
-      fi
-    fi
+function _wait_spinner(){
+  sleep $1 &
+  PID=$!
+  i=1
+  sp="/-\|"
+  echo -n ' '
+  setterm -cursor off
+  printf ' '
+  while [ -d /proc/$PID ]
+  do
+    printf "\b${sp:i++%${#sp}:1}"
   done
-
+  printf "\n"
+  setterm -cursor on
 }
 
-#
-# ----- End - Functions
+function _recover_grub_start(){
+  if [[ $device_choose != "null" ]]; then
+    printf "${Wait} ${White}The $program_name will perform the upgrade and installation of Grub ${None}"
+    _wait_spinner "5"
+    grub-mkconfig -o /boot/grub/grub.cfg
+    grub-install /dev/$device_choose
+    rm -f /usr/bin/$executable
+  else
+    printf "${Error} ${White}There was an error in the device choice before entering the Arch Linux.${None}\n"
+    exit 1
+  fi
+}
 
-# --------------------------------------------------------------------------------
+function _help(){
+  printf ""
+}
 
-# ----- Begin - Menu
-#
+function _umount_device(){
+  # -- Obsolete --
+  # umount $mount_dir/dev/pts
+  # umount $mount_dir/dev
+  # umount $mount_dir/proc
+  # umount $mount_dir/sys
+  # -- Obsolete --
+  umount -R $mount_dir
+  printf "${Ok} Dismantling made partitions.\n"
+  printf "${Ok} ${White}Successfully restructured Grub!${None}\n"
+}
 
-case "$1" in
+function _mount_device(){
+  if [[ $mount_device_status == "false" ]]; then
+    number_partitions=$(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
+    for i in $number_partitions; do
+      mount -t $type_partition /dev/$device$i $mount_dir
+      if [[ -f "$mount_dir/etc/os-release" ]]; then
+        distro_name=$(cat $mount_dir/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
+        if [[ "$distro_name" == "Arch Linux" ]]; then
+          # Set constants
+          sed -i "s|^device_choose=.*|device_choose=\"$device\"|g" $0
+          sed -i "s|^mount_device_status=.*|mount_device_status=\"true\"|g" $0
 
-   device)
-      _CATCH_DEVICE "$2"
-    ;;
-   help)
-    printf "\nExample: # bash $0 device sda\n\n"
-    printf "${Blue}More informations: https://github.com/williamcanin/$SCRIPT_GIT${None}\n\n"
-   ;;
-    *)
-      printf "\n* Usage: bash $0 device <sda|sdb|sdc> | help\n\n"
-    ;;
+          printf "${Ok} ${White}$distro_name device found!${None}\n"
+          cp -f $0 $mount_dir/usr/bin
+          chmod +x $mount_dir/usr/bin/$executable
+          printf "${Ok} ${White}Files copied done.${None}\n"
+          mount --bind /dev $mount_dir/dev
+          mount --bind /dev/pts $mount_dir/dev/pts
+          mount --bind /proc $mount_dir/proc
+          mount --bind /sys $mount_dir/sys
+          printf "${Ok} ${White}Mounts directories done.${None}\n"
+          printf "${Wait} ${White}Enter the system found $distro_name ${None}"
+          _wait_spinner "3"
+          chroot $mount_dir /bin/bash
+          # printf "${Ok} ${White}Successfully restructured Grub!${None}\n"
+          _umount_device
+          exit 0
+        fi
+       else
+        printf "${Error} ${White} Sorry, but it seems that the mounted partitions did not return the file: \"/etc/os-release\" :(\n${None}"
+        exit 1
+      fi
+    done
+  fi
+}
 
-esac
-exit 0
 
-#
-# ----- End - Menu
+
+
+# case "$1" in
+#    device)
+#       _mount_device "$2"
+#     ;;
+#    start)
+#     # _recover_grub_start
+#    ;;
+#    credits)
+#     clear
+#     _credits
+#    ;;
+#    help)
+#     _help
+#    ;;
+#     *)
+#       printf "\n* Usage: bash $0 device <sda|sdb|sdc> | help\n\n"
+#     ;;
+# esac
+# exit 0
