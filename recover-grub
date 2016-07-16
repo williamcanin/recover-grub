@@ -170,7 +170,7 @@ function _finishing(){
   # -- Obsolete --
   umount -R $mount_dir
   printf "${Ok} Dismantling made partitions!\n"
-  printf "${Ok} ${White}Successfully restructured Grub! No error! \nCongratulations! Take more care next time ;) ${None}\n"
+  printf "${Ok} ${White}Successfully restructured Grub! No error! \n${None}\n"
 }
 
 # Function responsible for capturing the partition of Arch Linux and assemble.
@@ -210,7 +210,7 @@ function _mount_device(){
           # Set config
           sed -i "s|^device_choose=.*|device_choose=\"$device\"|g" $0
           # Enter system Arch Linux found
-          arch-chroot $mount_dir /bin/bash
+          chroot $mount_dir /bin/bash
           # Load function _finishing
           _finishing
           exit 0
