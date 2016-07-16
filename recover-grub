@@ -186,18 +186,11 @@ function _mount_device(){
   if [[ $mount_device_status == "false" ]]; then
     # Create arrays
     partitions=$(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
-    npartitions=( $(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n) )
-    npartitions_refactored="$(expr ${#npartitions[@]} - 1)"
     for i in ${partitions}; do
-      # for (( x = 0; x < ${#npartitions[@]}; i++ )); do
-      #   if [[ condition ]]; then
-      #     #statements
-      #   fi
-      # done
-
       mount -t $type_partition /dev/$device$i $mount_dir
-      distro_name=$(cat $mount_dir/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
-      if [[ -f "$mount_dir/etc/os-release" ]] && [[ "$distro_name" == "Arch Linux" ]]; then
+      if [[ -f "$mount_dir/etc/os-release" ]]; then
+        distro_name=$(cat $mount_dir/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
+        if [[ "$distro_name" == "Arch Linux" ]]; then
           # Set config
           sed -i "s|^device_choose=.*|device_choose=\"$device\"|g" $0
           sed -i "s|^mount_device_status=.*|mount_device_status=\"true\"|g" $0
@@ -222,11 +215,21 @@ function _mount_device(){
           arch-chroot $mount_dir /bin/bash
           # Load function _finishing
           _finishing
-          break
+          exit
         else
           umount $mount_dir
         fi
+      fi
     done
+
+      npartitions=( $(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n) )
+      npartitions_refactored="$(expr ${#npartitions[@]} - 1)"
+      for (( x = 0; x < ${#npartitions[@]}; x++ )); do
+        if [[ $x == $npartitions_refactored ]] && [[ ! -f "$mount_dir/etc/os-release" ]]; then
+          printf "${Error} ${White} Sorry, but it seems that the mounted partitions did not return the file: \"${mount_dir}/etc/os-release\" :(\n${None}"
+        fi
+      done
+
   fi
 }
 
@@ -254,25 +257,39 @@ partitions=$(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | s
 echo "Number Partition: ${number_partitions}"
 echo "Partitions: ${partitions}"
 
-for (( i = 0; i < ${#number_partitions[@]}; i++ )); do
+# for (( i = 0; i < ${#number_partitions[@]}; i++ )); do
 
-  # for x in $partitions; do
-  #   if [[ $x == 4 ]]; then
-  #     echo "arch linux"
-  #     break
-  #   fi
-  # done
+#   for x in $partitions; do
+#     if [[ $x == 7 ]]; then
+#       echo "arch linux"
+#       break
+#     fi
+#   done
 
 
-  verify="$(expr ${#number_partitions[@]} - 1)"
-  if [[ $i == $verify ]] && [[ ! -f "./etc/os-release" ]]; then
-    printf "Partições sem sistema operacional\n"
-    # break
+#   npartitions_refactored="$(expr ${#number_partitions[@]} - 1)"
+#   if [[ $i == $npartitions_refactored ]] && [[ ! -f "./etc/os-release" ]]; then
+#     printf "Partições sem sistema operacional\n"
+#     break
+#   fi
+# done
+
+
+for x in $partitions; do
+  if [[ $x == 71 ]]; then
+    echo "arch linux"
+    exit
   fi
 done
 
 
-
+for (( i = 0; i < ${#number_partitions[@]}; i++ )); do
+  npartitions_refactored="$(expr ${#number_partitions[@]} - 1)"
+  if [[ $i == $npartitions_refactored ]] && [[ ! -f "./etc/os-release" ]]; then
+    printf "Partições sem sistema operacional\n"
+    break
+  fi
+done
 
 
 
