@@ -83,7 +83,7 @@ Ok="[${BGreen} Ok ${None}]"
 Wait="[${BWhite} Wait ${None}]"
 
 # Config - Program manipulation
-device_choose="/dev/sda"
+device_choose="none"
 mount_device_status="false"
 mount_mnt_status="false"
 
