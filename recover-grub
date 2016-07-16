@@ -76,11 +76,11 @@ BCyan=${Bold}$(tput setaf 6)
 BWhite=${Bold}$(tput setaf 7)
 
 # Messages
-Error="[${Red} Error ${None}]"
-Warning="[${Yellow} Warning ${None}]"
-Info="[${Cyan} Info ${None}]"
-Ok="[${Green} Ok ${None}]"
-Wait="[${White} Wait ${None}]"
+Error="[${BRed} Error ${None}]"
+Warning="[${BYellow} Warning ${None}]"
+Info="[${BCyan} Info ${None}]"
+Ok="[${BGreen} Ok ${None}]"
+Wait="[${BWhite} Wait ${None}]"
 
 # Config - Program manipulation
 device_choose="/dev/sda"
@@ -182,7 +182,7 @@ function _finishing(){
   umount -R $mount_dir
   printf "${Ok} Dismantling made partitions!\n"
   printf "${Ok} ${White}Successfully restructured Grub! No error! \n${None}"
-  printf "${Ok} ${White}Now you can restart the machine with the command: ${BBlue}reboot \n${None}"
+  printf "${Info} ${Cyan}Now you can restart the machine with the command: ${BBlue}reboot \n${None}"
   rm -f $0
 }
 
@@ -211,8 +211,8 @@ function _select_device(){
 # Function responsible for capturing the partition of Arch Linux and assemble.
 function _mount_device(){
   _check_current_system
-  _select_device
   if [[ $mount_device_status == "false" ]]; then
+    _select_device
     # Array number of partitions
     npartitions=$(lsblk -f | grep ext | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
     for partition in ${npartitions}; do
