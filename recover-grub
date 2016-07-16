@@ -192,7 +192,6 @@ function _mount_device(){
           # Set config
           sed -i "s|^mount_device_status=.*|mount_device_status=\"true\"|g" $0
           printf "${Ok} ${White}$distro_name device found!${None}\n"
-          cp -f $0 $mount_dir/usr/bin
           chmod +x $mount_dir/usr/bin/$executable
           printf "${Ok} ${White}Files copied done.${None}\n"
           mount --bind /dev $mount_dir/dev
@@ -209,6 +208,7 @@ function _mount_device(){
           read
           # Set config
           sed -i "s|^device_choose=.*|device_choose=\"$device\"|g" $0
+          cp -f $0 $mount_dir/usr/bin
           # Enter system Arch Linux found
           chroot $mount_dir /bin/bash
           # Load function _finishing
@@ -250,7 +250,6 @@ function _recover_grub_start(){
     exit 1
   fi
 }
-
 
 # Menu
 case "$1" in
