@@ -170,7 +170,7 @@ function _finishing(){
   # -- Obsolete --
   umount -R $mount_dir
   printf "${Ok} Dismantling made partitions!\n"
-  printf "${Ok} ${White}Successfully restructured Grub! No error! \n${None}\n"
+  printf "${Ok} ${White}Successfully restructured Grub! No error! \n${None}"
   rm -f $0
 }
 
@@ -181,12 +181,12 @@ function _mount_device(){
     # Create arrays
     partitions=$(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
     for i in ${partitions}; do
-      if [[ $mount_mnt_status == "true" ]]; then
-        umount $mount_dir
-        sed -i "s|^mount_mnt_status=.*|mount_mnt_status=\"false\"|g" $0
-      fi
+      # if [[ $mount_mnt_status == "true" ]]; then
+      #   umount $mount_dir
+      #   sed -i "s|^mount_mnt_status=.*|mount_mnt_status=\"false\"|g" $0
+      # fi
       mount -t $type_partition /dev/$device$i $mount_dir
-      sed -i "s|^mount_mnt_status=.*|mount_mnt_status=\"true\"|g" $0
+      # sed -i "s|^mount_mnt_status=.*|mount_mnt_status=\"true\"|g" $0
       if [[ -f "$mount_dir/etc/os-release" ]]; then
         distro_name=$(cat $mount_dir/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
         if [[ "$distro_name" == "Arch Linux" ]]; then
@@ -199,7 +199,7 @@ function _mount_device(){
           mount --bind /sys $mount_dir/sys
           printf "${Ok} ${White}Mounts directories done.${None}\n"
           printf "${Wait} ${White}Finding the $distro_name system ${None}"
-          _wait_spinner "3"
+          _wait_spinner "5"
           printf "${Ok} ${White} $program_name system found! ${None}\n"
           printf "${Warning} ${Orange} Attention! Run the following command to start the recovery: ${None}\n"
           printf "${Blue} $executable start ${None}\n"
@@ -214,7 +214,11 @@ function _mount_device(){
           # Load function _finishing
           _finishing
           exit 0
+        else
+          umount $mount_dir
         fi
+      else
+        umount $mount_dir
       fi
     done
 
