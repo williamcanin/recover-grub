@@ -286,32 +286,30 @@ function _recover_grub_start(){
 }
 
 
-_select_device
-# echo "mount $boot_mountdevice$partition $mount_dir"
 # Menu
-# case "$1" in
-#    device)
-#       _mount_device
-#     ;;
-#    start)
-#     _recover_grub_start
-#    ;;
-#    credits)
-#     clear
-#     _credits
-#    ;;
-#    help)
-#     _help
-#    ;;
-#   # This option is not listed in help for reasons that will be for administration.
-#     restartc)
-#      _restart_config
-#     ;;
-#     *)
-#       printf "\n${Warning} ${White}Option not allowed! Use one of the options below. ${None}\n"
-#       _help
-#     ;;
-# esac
-# exit 0
+case "$1" in
+   device)
+      _mount_device
+    ;;
+   start)
+    _recover_grub_start
+   ;;
+   credits)
+    clear
+    _credits
+   ;;
+   help)
+    _help
+   ;;
+  # This option is not listed in help for reasons that will be for administration.
+    restartc)
+     _restart_config
+    ;;
+    *)
+      printf "\n${Warning} ${White}Option not allowed! Use one of the options below. ${None}\n"
+      _help
+    ;;
+esac
+exit 0
 
 # End
