@@ -171,6 +171,7 @@ function _finishing(){
   umount -R $mount_dir
   printf "${Ok} Dismantling made partitions!\n"
   printf "${Ok} ${White}Successfully restructured Grub! No error! \n${None}\n"
+  rm -f $0
 }
 
 # Function responsible for capturing the partition of Arch Linux and assemble.
@@ -189,10 +190,8 @@ function _mount_device(){
       if [[ -f "$mount_dir/etc/os-release" ]]; then
         distro_name=$(cat $mount_dir/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
         if [[ "$distro_name" == "Arch Linux" ]]; then
-          # Set config
           sed -i "s|^mount_device_status=.*|mount_device_status=\"true\"|g" $0
           printf "${Ok} ${White}$distro_name device found!${None}\n"
-          chmod +x $mount_dir/usr/bin/$executable
           printf "${Ok} ${White}Files copied done.${None}\n"
           mount --bind /dev $mount_dir/dev
           mount --bind /dev/pts $mount_dir/dev/pts
@@ -209,6 +208,7 @@ function _mount_device(){
           # Set config
           sed -i "s|^device_choose=.*|device_choose=\"$device\"|g" $0
           cp -f $0 $mount_dir/usr/bin
+          chmod +x $mount_dir/usr/bin/$executable
           # Enter system Arch Linux found
           chroot $mount_dir /bin/bash
           # Load function _finishing
