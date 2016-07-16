@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# Information:
+#
 # ******************************************************************************
 # Type: Shell Script
 # Description: Mount partition Arch Linux and Recover the Grub on Arch Linux
@@ -18,7 +20,7 @@
 # License:
 # The MIT License (MIT) for Recover Grub
 
-# Copyright (c) 2015 William C. Canin <william.costa.canin@gmail.com>
+# Copyright (c) 2015-2016 William C. Canin <william.costa.canin@gmail.com>
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +42,8 @@
 # ******************************************************************************
 #
 
+# Begin
+
 # Constants
 #
 email="william.costa.canin@gmail.com"
@@ -60,20 +64,18 @@ Warning="[${Orange} Warning ${None}]"
 Ok="[${Green} Ok ${None}]"
 Wait="[${White} Wait ${None}]"
 
-# Variables
-#
+# Config - Program manipulation
 exportpath="false"
 device_choose="null"
 mount_device_status="false"
+
+# Variables
 mount_dir="/mnt"
 type_partition="ext4"
 version="1.1.1"
-path_script="${mount_dir}/"
 
 
-
-
-# Credits
+# Function show Credits
 function _credits(){
 cat << EOT
 
@@ -96,8 +98,37 @@ cat << EOT
 EOT
 }
 
+# Function show help
+function _help(){
+cat << EOT
+
+ ---------------------------------------------------------
+|           Help  -  ${program_name} - Version ${version}         |
+ ---------------------------------------------------------
+
+ Usage: $executable [options] [name]
+
+  Options:
+
+    device [name]     Find the partition where the Arch Linux is mounted
+                      and mounts.
+                      You should place the device name, not the partition.
+                      E.g.: sda, sdb, sdc, etc .
+
+    start             Starts the recovery of Grub.
+                      This option is enabled, after the use of the
+                      'device [name]' option and assemble the system.
+
+    credits           A list of credits of this program.
+
+    help              Output this instructions.
+
+EOT
+}
+
+
 # --- Obsolete ---
-# Export Path
+# # Function export path current for PATH
 # function _export_path(){
 #   if [[ $exportpath == "false" ]]; then
 #     PATH="$PATH:./"
@@ -126,56 +157,13 @@ function _wait_spinner(){
 }
 
 
-# Function that initiates recovery
-function _recover_grub_start(){
-  if [[ $device_choose != "null" ]]; then
-    printf "${Wait} ${White}The $program_name will perform the upgrade and installation of Grub ${None}"
-    _wait_spinner "5"
-    grub-mkconfig -o /boot/grub/grub.cfg
-    grub-install /dev/$device_choose
-    printf "${Ok} ${White}Successfully restructured Grub! We're almost done ... ${None}\n"
-    printf "${Warning} ${White}Use command: exit ${None}\n"
-    rm -f /usr/bin/$executable
-    exit 0
-  else
-    printf "${Error} ${White}There was an error in the device choice before entering the Arch Linux.${None}\n"
-    exit 1
-  fi
-}
-
+# Checks whether the Grub Recover program will run on a Arch Linux distribution
 function _check_current_system(){
   current_system=$(cat /etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
   if [[ $current_system != "Arch Linux" ]]; then
     printf "${Error} ${Red} You can not run this program for Fedora at the moment only for Arch Linux.${None}\n"
     exit 1
   fi
-}
-
-function _help(){
-cat << EOT
-
- ---------------------------------------------------------
-|           Help  -  ${program_name} - Version ${version}         |
- ---------------------------------------------------------
-
- Usage: $executable [options] [name]
-
-  Options:
-
-    device [name]     Find the partition where the Arch Linux is mounted
-                      and mounts.
-                      You should place the device name, not the partition.
-                      E.g.: sda, sdb, sdc, etc .
-
-    start             Starts the recovery of Grub.
-                      This option is enabled, after the use of the
-                      'device [name]' option and assemble the system.
-
-    credits           A list of credits of this program.
-
-    help              Output this instructions.
-
-EOT
 }
 
 # Script shutdown function
@@ -191,18 +179,18 @@ function _finishing(){
   printf "${Ok} ${White}Successfully restructured Grub! No error! \nCongratulations! Take more care next time ;) ${None}\n"
 }
 
-
 # Function responsible for capturing the partition of Arch Linux and assemble.
 function _mount_device(){
   _check_current_system
   if [[ $mount_device_status == "false" ]]; then
-    number_partitions=$(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
-    for i in $number_partitions; do
+    # Create array
+    number_partitions= ( $(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n) )
+    for i in ${number_partitions[@]}; do
       mount -t $type_partition /dev/$device$i $mount_dir
       if [[ -f "$mount_dir/etc/os-release" ]]; then
         distro_name=$(cat $mount_dir/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
         if [[ "$distro_name" == "Arch Linux" ]]; then
-          # Set constants
+          # Set config
           sed -i "s|^device_choose=.*|device_choose=\"$device\"|g" $0
           sed -i "s|^mount_device_status=.*|mount_device_status=\"true\"|g" $0
 
@@ -226,35 +214,84 @@ function _mount_device(){
           arch-chroot $mount_dir /bin/bash
           # Load function _finishing
           _finishing
-          exit 0
+          break
         fi
-       else
-        printf "${Error} ${White} Sorry, but it seems that the mounted partitions did not return the file: \"/etc/os-release\" :(\n${None}"
-        exit 1
+       # else
+       #  printf "${Error} ${White} Sorry, but it seems that the mounted partitions did not return the file: \"/etc/os-release\" :(\n${None}"
       fi
     done
   fi
 }
 
+# Function that initiates recovery
+function _recover_grub_start(){
+  if [[ $device_choose != "null" ]]; then
+    printf "${Wait} ${White}The $program_name will perform the upgrade and installation of Grub ${None}"
+    _wait_spinner "5"
+    grub-mkconfig -o /boot/grub/grub.cfg
+    grub-install /dev/$device_choose
+    printf "${Ok} ${White}Successfully restructured Grub! We're almost done ... ${None}\n"
+    printf "${Warning} ${White}Use command: exit ${None}\n"
+    rm -f /usr/bin/$executable
+    exit 0
+  else
+    printf "${Error} ${White}There was an error in the device choice before entering the Arch Linux.${None}\n"
+    exit 1
+  fi
+}
+
+
+#cada palavra do arquivo vira um elemento do array
+
+array=( $(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n) )
+
+# agora vamos exibir o conteúdo
+for i in ${array[@]}; do
+if [[ $i == 5 ]]; then
+  echo "achou"
+  break
+else
+  echo "não achou"
+  # break
+fi
+done
+
+# while [[ condition ]]; do
+#   #statements
+# done
+
+# vet=(2 1 3 5 6 2)
+# for i in $vet ; do
+#   if [[ $i == 2 ]]; then
+#     echo "dois"
+#   else
+#     echo "dois não encontrado"
+#     break
+#     # exit 1
+#   fi
+# done
+
 
 # Menu
-case "$1" in
-   device)
-      _mount_device "$2"
-    ;;
-   start)
-    _recover_grub_start
-   ;;
-   credits)
-    clear
-    _credits
-   ;;
-   help)
-    _help
-   ;;
-    *)
-      printf "\n${Warning} ${White}Option not allowed! Use one of the options below. ${None}\n"
-      _help
-    ;;
-esac
-exit 0
+# case "$1" in
+#    device)
+#       _mount_device "$2"
+#     ;;
+#    start)
+#     _recover_grub_start
+#    ;;
+#    credits)
+#     clear
+#     _credits
+#    ;;
+#    help)
+#     _help
+#    ;;
+#     *)
+#       printf "\n${Warning} ${White}Option not allowed! Use one of the options below. ${None}\n"
+#       _help
+#     ;;
+# esac
+# exit 0
+
+# End
