@@ -46,32 +46,48 @@
 
 # Constants
 #
+mount_dir="/mnt"
 email="william.costa.canin@gmail.com"
 website="http://williamcanin.com"
 github="https://github.com/williamcanin"
 program_name="Recover Grub"
 executable="recover-grub"
-device="$2"
 year_current="$(date +%Y)"
-Orange="\033[30;0;33m"
-Red="\033[30;0;31m"
-White="\033[30;0;1m"
-Green="\033[30;0;32m"
-Blue="\033[30;0;34m"
-None="\033[00m"
+prompt1="Enter your option: "
+# COLORS
+Bold=$(tput bold)
+Underline=$(tput sgr 0 1)
+None=$(tput sgr0)
+# Regular Colors
+Red=$(tput setaf 1)
+Green=$(tput setaf 2)
+Yellow=$(tput setaf 3)
+Blue=$(tput setaf 4)
+Purple=$(tput setaf 5)
+Cyan=$(tput setaf 6)
+White=$(tput setaf 7)
+# Bold
+BRed=${Bold}$(tput setaf 1)
+BGreen=${Bold}$(tput setaf 2)
+BYellow=${Bold}$(tput setaf 3)
+BBlue=${Bold}$(tput setaf 4)
+BPurple=${Bold}$(tput setaf 5)
+BCyan=${Bold}$(tput setaf 6)
+BWhite=${Bold}$(tput setaf 7)
+
+# Messages
 Error="[${Red} Error ${None}]"
-Warning="[${Orange} Warning ${None}]"
+Warning="[${Yellow} Warning ${None}]"
+Info="[${Cyan} Info ${None}]"
 Ok="[${Green} Ok ${None}]"
 Wait="[${White} Wait ${None}]"
 
 # Config - Program manipulation
-device_choose="none"
+device_choose="/dev/sda"
 mount_device_status="false"
 mount_mnt_status="false"
 
 # Variables
-mount_dir="/mnt"
-type_partition="ext4"
 version="1.1.1"
 
 
@@ -106,18 +122,19 @@ cat << EOT
 |           Help  -  ${program_name} - Version ${version}         |
  ---------------------------------------------------------
 
- Usage: $executable [options] [name]
+ Usage: $executable [options]
 
   Options:
 
-    device [name]     Find the partition where the Arch Linux is mounted
+    device            Find the partition where the Arch Linux is mounted
                       and mounts.
-                      You should place the device name, not the partition.
-                      E.g.: sda, sdb, sdc, etc .
+                      A list of devices will be displayed, choose the
+                      device where the Arch Linux is installed to recover
+                      the Grub.
 
     start             Starts the recovery of Grub.
                       This option is enabled, after the use of the
-                      'device [name]' option and assemble the system.
+                      'device' option and assemble the system.
 
     credits           A list of credits of this program.
 
@@ -144,7 +161,6 @@ function _wait_spinner(){
   setterm -cursor on
 }
 
-
 # Checks whether the Grub Recover program will run on a Arch Linux distribution
 function _check_current_system(){
   current_system=$(cat /etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
@@ -154,6 +170,7 @@ function _check_current_system(){
   fi
 }
 
+# Function restart variables config - This development
 function _restart_config(){
   sed -i "s|^device_choose=.*|device_choose=\"none\"|g" $0
   sed -i "s|^mount_device_status=.*|mount_device_status=\"false\"|g" $0
@@ -162,31 +179,43 @@ function _restart_config(){
 
 # Script shutdown function
 function _finishing(){
-  # -- Obsolete --
-  # umount $mount_dir/dev/pts
-  # umount $mount_dir/dev
-  # umount $mount_dir/proc
-  # umount $mount_dir/sys
-  # -- Obsolete --
   umount -R $mount_dir
   printf "${Ok} Dismantling made partitions!\n"
   printf "${Ok} ${White}Successfully restructured Grub! No error! \n${None}"
   rm -f $0
 }
 
+# Function check if an element exist in a string
+function _contains_element() {
+    for e in "${@:2}"; do [[ $e == $1 ]] && break; done;
+}
+
+# Function select device
+function _select_device(){
+  printf "${Info} ${BCyan} Select the device in which the Grub will be recovered. ${None}\n\n"
+  devices_list=(`lsblk -d | awk '{print "/dev/" $1}' | grep 'sd\|hd\|vd'`);
+  PS3="$prompt1"
+  printf "List devices options:\n\n"
+  select device in "${devices_list[@]}"; do
+    if _contains_element "${device}" "${devices_list[@]}"; then
+      break
+    else
+      printf "${Error} ${Red} Invalid option ${None}\n"
+    fi
+  done
+  boot_mountdevice="$device"
+}
+
+
 # Function responsible for capturing the partition of Arch Linux and assemble.
 function _mount_device(){
   _check_current_system
+  _select_device
   if [[ $mount_device_status == "false" ]]; then
-    # Create arrays
-    partitions=$(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
-    for i in ${partitions}; do
-      # if [[ $mount_mnt_status == "true" ]]; then
-      #   umount $mount_dir
-      #   sed -i "s|^mount_mnt_status=.*|mount_mnt_status=\"false\"|g" $0
-      # fi
-      mount -t $type_partition /dev/$device$i $mount_dir
-      # sed -i "s|^mount_mnt_status=.*|mount_mnt_status=\"true\"|g" $0
+    # Array number of partitions
+    npartitions=$(lsblk -f | grep ext | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
+    for partition in ${npartitions}; do
+      mount $boot_mountdevice$partition $mount_dir
       if [[ -f "$mount_dir/etc/os-release" ]]; then
         distro_name=$(cat $mount_dir/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
         if [[ "$distro_name" == "Arch Linux" ]]; then
@@ -201,12 +230,11 @@ function _mount_device(){
           printf "${Wait} ${White}Finding the $distro_name system ${None}"
           _wait_spinner "5"
           printf "${Ok} ${White} $program_name system found! ${None}\n"
-          printf "${Warning} ${Orange} Attention! Run the following command to start the recovery: ${None}\n"
+          printf "${Warning} ${Yellow} Attention! Run the following command to start the recovery: ${None}\n"
           printf "${Blue} $executable start ${None}\n"
           printf "${White} Press ENTER to enter the assembled system! ${None}\n"
           read
-          # Set config
-          sed -i "s|^device_choose=.*|device_choose=\"$device\"|g" $0
+          sed -i "s|^device_choose=.*|device_choose=\"$boot_mountdevice\"|g" $0
           cp -f $0 $mount_dir/usr/bin
           chmod +x $mount_dir/usr/bin/$executable
           # Enter system Arch Linux found
@@ -222,10 +250,11 @@ function _mount_device(){
       fi
     done
 
-    npartitions=( $(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n) )
-    npartitions_refactored="$(expr ${#npartitions[@]} - 1)"
-    for (( x = 0; x < ${#npartitions[@]}; x++ )); do
-      if [[ $x == $npartitions_refactored ]] && [[ ! -f "$mount_dir/etc/os-release" ]]; then
+    # Array qtde of partitions
+    qtdpartitions=( $(lsblk -f | grep ext | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n) )
+    qtdpartitions_refactored="$(expr ${#qtdpartitions[@]} - 1)"
+    for (( x = 0; x < ${#qtdpartitions[@]}; x++ )); do
+      if [[ $x == $qtdpartitions_refactored ]] && [[ ! -f "$mount_dir/etc/os-release" ]]; then
         printf "${Error} ${White} Sorry, but it seems that the mounted partitions did not return the file: \"${mount_dir}/etc/os-release\" :(\n${None}"
         exit 1
       fi
@@ -244,7 +273,7 @@ function _recover_grub_start(){
     printf "${Wait} ${White}The $program_name will perform the upgrade and installation of Grub ${None}"
     _wait_spinner "5"
     grub-mkconfig -o /boot/grub/grub.cfg
-    grub-install /dev/$device_choose
+    grub-install $device_choose
     printf "${Ok} ${White}Successfully restructured Grub! We're almost done ... ${None}\n"
     printf "${Warning} ${White}Use command: exit ${None}\n"
     rm -f /usr/bin/$executable
@@ -255,30 +284,33 @@ function _recover_grub_start(){
   fi
 }
 
+
+_select_device
+# echo "mount $boot_mountdevice$partition $mount_dir"
 # Menu
-case "$1" in
-   device)
-      _mount_device "$2"
-    ;;
-   start)
-    _recover_grub_start
-   ;;
-   credits)
-    clear
-    _credits
-   ;;
-   help)
-    _help
-   ;;
-  # This option is not listed in help for reasons that will be for administration.
-    restartc)
-     _restart_config
-    ;;
-    *)
-      printf "\n${Warning} ${White}Option not allowed! Use one of the options below. ${None}\n"
-      _help
-    ;;
-esac
-exit 0
+# case "$1" in
+#    device)
+#       _mount_device
+#     ;;
+#    start)
+#     _recover_grub_start
+#    ;;
+#    credits)
+#     clear
+#     _credits
+#    ;;
+#    help)
+#     _help
+#    ;;
+#   # This option is not listed in help for reasons that will be for administration.
+#     restartc)
+#      _restart_config
+#     ;;
+#     *)
+#       printf "\n${Warning} ${White}Option not allowed! Use one of the options below. ${None}\n"
+#       _help
+#     ;;
+# esac
+# exit 0
 
 # End
