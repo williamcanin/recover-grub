@@ -4,13 +4,15 @@
 # Type: Shell Script
 # Description: Mount partition Arch Linux and Recover the Grub on Arch Linux
 # Script Name: Recover Grub
-# Release Status: 1.1.0
+# Release Status: 1.1.1
 # Project URL: https://github.com/williamcanin/recover-grub.git
 # URL Script: http://git.io/recover-grub
 
 # Author: William C. Canin
+#   Contacts:
 #   E-Mail: william.costa.canin@gmail.com
-#   Home page: http://williamcanin.guthub.io
+#   WebSite: http://williamcanin.guthub.io
+#   GitHub: https://github.com/williamcanin
 
 
 # License:
@@ -40,10 +42,12 @@
 
 # Constants
 #
-exportpath="false"
+email="william.costa.canin@gmail.com"
+website="http://williamcanin.com"
+github="https://github.com/williamcanin"
+program_name="Recover Grub"
+executable="recover-grub"
 device="$2"
-device_choose="null"
-mount_device_status="false"
 year_current="$(date +%Y)"
 Orange="\033[30;0;33m"
 Red="\033[30;0;31m"
@@ -56,14 +60,14 @@ Warning="[${Orange} Warning ${None}]"
 Ok="[${Green} Ok ${None}]"
 Wait="[${White} Wait ${None}]"
 
-
 # Variables
 #
+exportpath="false"
+device_choose="null"
+mount_device_status="false"
 mount_dir="/mnt"
 type_partition="ext4"
-program_name="Recover Grub"
 version="1.1.1"
-executable="recover-grub"
 path_script="${mount_dir}/"
 
 
@@ -73,34 +77,38 @@ path_script="${mount_dir}/"
 function _credits(){
 cat << EOT
 
- ---------------------------------------------------------
-|               ${program_name} - Version ${version}              |
- ---------------------------------------------------------
-|                         Credits:                        |
-|                                                         |
-|           Author: William da Costa Canin                |
-|           E-Mail: william.costa.canin@gmail.com         |
-|           Homepage: http://williamcanin.github.io       |
-|           Locale: Brazil - SP                           |
-|                                                         |
-|                                                         |
-|    ${program_name} © 2015-$year_current - All Right Reserved.       |
-|    Page: http://github.com/williamcanin/recover-grub    |
-|---------------------------------------------------------|
+   ---------------------------------------------------------
+  |               ${program_name} - Version ${version}              |
+   ---------------------------------------------------------
+  |                         Credits:                        |
+  |                                                         |
+  |           Author: William da Costa Canin                |
+  |           E-Mail: $email         |
+  |           Website: $website              |
+  |           GitHub: $github       |
+  |           Locale: Brazil - SP                           |
+  |                                                         |
+  |                                                         |
+  |    ${program_name} © 2015-$year_current - All Right Reserved.       |
+  |    Doc: http://github.com/williamcanin/recover-grub     |
+  |---------------------------------------------------------|
 
 EOT
 }
 
+# --- Obsolete ---
 # Export Path
-function _export_path(){
-  if [[ $exportpath == "false" ]]; then
-    PATH="$PATH:./"
-    export PATH
-    sed -i "s|^  exportpath=.*|  exportpath=\"true\"|g" $0
-  fi
-}
+# function _export_path(){
+#   if [[ $exportpath == "false" ]]; then
+#     PATH="$PATH:./"
+#     export PATH
+#     sed -i "s|^  exportpath=.*|  exportpath=\"true\"|g" $0
+#   fi
+# }
+# _export_path
+# --- Obsolete ---
 
-
+# Spin function for messages in wait
 function _wait_spinner(){
   sleep $1 &
   PID=$!
@@ -117,24 +125,61 @@ function _wait_spinner(){
   setterm -cursor on
 }
 
+
+# Function that initiates recovery
 function _recover_grub_start(){
   if [[ $device_choose != "null" ]]; then
     printf "${Wait} ${White}The $program_name will perform the upgrade and installation of Grub ${None}"
     _wait_spinner "5"
     grub-mkconfig -o /boot/grub/grub.cfg
     grub-install /dev/$device_choose
+    printf "${Ok} ${White}Successfully restructured Grub! We're almost done ... ${None}\n"
+    printf "${Warning} ${White}Use command: exit ${None}\n"
     rm -f /usr/bin/$executable
+    exit 0
   else
     printf "${Error} ${White}There was an error in the device choice before entering the Arch Linux.${None}\n"
     exit 1
   fi
 }
 
-function _help(){
-  printf ""
+function _check_current_system(){
+  current_system=$(cat /etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
+  if [[ $current_system != "Arch Linux" ]]; then
+    printf "${Error} ${Red} You can not run this program for Fedora at the moment only for Arch Linux.${None}\n"
+    exit 1
+  fi
 }
 
-function _umount_device(){
+function _help(){
+cat << EOT
+
+ ---------------------------------------------------------
+|           Help  -  ${program_name} - Version ${version}         |
+ ---------------------------------------------------------
+
+ Usage: $executable [options] [name]
+
+  Options:
+
+    device [name]     Find the partition where the Arch Linux is mounted
+                      and mounts.
+                      You should place the device name, not the partition.
+                      E.g.: sda, sdb, sdc, etc .
+
+    start             Starts the recovery of Grub.
+                      This option is enabled, after the use of the
+                      'device [name]' option and assemble the system.
+
+    credits           A list of credits of this program.
+
+    help              Output this instructions.
+
+EOT
+}
+
+# Script shutdown function
+function _finishing(){
   # -- Obsolete --
   # umount $mount_dir/dev/pts
   # umount $mount_dir/dev
@@ -142,11 +187,14 @@ function _umount_device(){
   # umount $mount_dir/sys
   # -- Obsolete --
   umount -R $mount_dir
-  printf "${Ok} Dismantling made partitions.\n"
-  printf "${Ok} ${White}Successfully restructured Grub!${None}\n"
+  printf "${Ok} Dismantling made partitions!\n"
+  printf "${Ok} ${White}Successfully restructured Grub! No error! \nCongratulations! Take more care next time ;) ${None}\n"
 }
 
+
+# Function responsible for capturing the partition of Arch Linux and assemble.
 function _mount_device(){
+  _check_current_system
   if [[ $mount_device_status == "false" ]]; then
     number_partitions=$(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
     for i in $number_partitions; do
@@ -167,11 +215,17 @@ function _mount_device(){
           mount --bind /proc $mount_dir/proc
           mount --bind /sys $mount_dir/sys
           printf "${Ok} ${White}Mounts directories done.${None}\n"
-          printf "${Wait} ${White}Enter the system found $distro_name ${None}"
+          printf "${Wait} ${White}Finding the $distro_name system ${None}"
           _wait_spinner "3"
-          chroot $mount_dir /bin/bash
-          # printf "${Ok} ${White}Successfully restructured Grub!${None}\n"
-          _umount_device
+          printf "${Ok} ${White} $program_name system found! ${None}\n"
+          printf "${Warning} ${Orange} Attention! Run the following command to start the recovery: ${None}\n"
+          printf "${Blue} $executable start ${None}\n"
+          printf "${White} Press ENTER to enter the assembled system! ${None}\n"
+          read
+          # Enter system Arch Linux found
+          arch-chroot $mount_dir /bin/bash
+          # Load function _finishing
+          _finishing
           exit 0
         fi
        else
@@ -183,24 +237,24 @@ function _mount_device(){
 }
 
 
-
-
-# case "$1" in
-#    device)
-#       _mount_device "$2"
-#     ;;
-#    start)
-#     # _recover_grub_start
-#    ;;
-#    credits)
-#     clear
-#     _credits
-#    ;;
-#    help)
-#     _help
-#    ;;
-#     *)
-#       printf "\n* Usage: bash $0 device <sda|sdb|sdc> | help\n\n"
-#     ;;
-# esac
-# exit 0
+# Menu
+case "$1" in
+   device)
+      _mount_device "$2"
+    ;;
+   start)
+    _recover_grub_start
+   ;;
+   credits)
+    clear
+    _credits
+   ;;
+   help)
+    _help
+   ;;
+    *)
+      printf "\n${Warning} ${White}Option not allowed! Use one of the options below. ${None}\n"
+      _help
+    ;;
+esac
+exit 0
