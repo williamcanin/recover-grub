@@ -21,44 +21,48 @@
       the machine and give boot.
 
   B - After starting the terminal Arch Linux, you must make a connection
-      with the internet to install Git and do clone "Recover Grub".
+      to the Internet to perform the download the "Recover Grub" and
+      then run it.
       If the machine is connected via a network cable, probably
-      the connection is already available. If connection by Wifi,
-      use the command:
+      the connection is already available (if not, set).
+      If connection by Wifi, use the command:
 
-        # wifi-menu
+      # wifi-menu
 
       This command will enable a setting with the internet through
       of wifi. When setting up your connection, use the following
       command to ping and test the connection to the internet:
 
-        # ping -c3 <any site>
+      # ping -c3 archlinux.org
+
+      If the answer is not "ping: unknown host archlinux.org", your connection is active.
 
   C - With the active internet may have to download the
       "Recover Grub". To do this, run the following command:
 
-        # curl -L git.io/recover-grub -o recover-grub
+      # curl -L git.io/recover-grub -o recover-grub
 
-        or
+      or
 
-        # wget git.io/recover-grub
+      # wget git.io/recover-grub
 
-  D - With the "Recover Grub" in hand, the next step is run it to
-      initiate the recovery of Grub.
-      However, you should know which device was installed Arch Linux,
-      for example: sda, sdb, sdc,... etc.
-      ATTENTION !!! Not the partition, is the disk. (sda, sdb, etc ...)
-      After, run the following command:
+  D - As "Recover Grub" in hand, the next step is running for permission of 
+     "Recover Grub" and choose the machine device where the Arch Linux is  
+      installed. 
         
-        # chmod +x recover-grub
-        # recover-grub device <sda|sdb|sdc...>
+      # chmod +x recover-grub
+      # recover-grub device
 
-  E - After the "Recover Grub" start, you will enter the assembly section
-      to mount the partition where the Arch Linux is installed and
-      subsequently to the recovery section of Grub where will ask the
-      user to enter the recovery command.
-      Follow the steps, you can not go wrong!
+  E - After choosing the "Recover Grub" will enter the chroot session for you 
+      to run the Grub recovery command. The command is:
 
+      # recover-grub start
+
+  F - The "Recover Grub" is quite intuitive, after finishing, he will tell to
+      restart the machine that the recovery was successful.
+      Run the command:
+
+      # reboot
 
 [ LICENSE ]
 
