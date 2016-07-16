@@ -65,10 +65,9 @@ Ok="[${Green} Ok ${None}]"
 Wait="[${White} Wait ${None}]"
 
 # Config - Program manipulation
-exportpath="false"
-device_choose="null"
+device_choose="none"
 mount_device_status="false"
-search_os_release="false"
+mount_mnt_status="false"
 
 # Variables
 mount_dir="/mnt"
@@ -128,18 +127,6 @@ EOT
 }
 
 
-# --- Obsolete ---
-# # Function export path current for PATH
-# function _export_path(){
-#   if [[ $exportpath == "false" ]]; then
-#     PATH="$PATH:./"
-#     export PATH
-#     sed -i "s|^  exportpath=.*|  exportpath=\"true\"|g" $0
-#   fi
-# }
-# _export_path
-# --- Obsolete ---
-
 # Spin function for messages in wait
 function _wait_spinner(){
   sleep $1 &
@@ -167,6 +154,12 @@ function _check_current_system(){
   fi
 }
 
+function _restart_config(){
+  sed -i "s|^device_choose=.*|device_choose=\"none\"|g" $0
+  sed -i "s|^mount_device_status=.*|mount_device_status=\"false\"|g" $0
+  sed -i "s|^mount_mnt_status=.*|mount_mnt_status=\"false\"|g" $0
+}
+
 # Script shutdown function
 function _finishing(){
   # -- Obsolete --
@@ -187,14 +180,17 @@ function _mount_device(){
     # Create arrays
     partitions=$(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
     for i in ${partitions}; do
+      if [[ $mount_mnt_status == "true" ]]; then
+        umount $mount_dir
+        sed -i "s|^mount_mnt_status=.*|mount_mnt_status=\"false\"|g" $0
+      fi
       mount -t $type_partition /dev/$device$i $mount_dir
+      sed -i "s|^mount_mnt_status=.*|mount_mnt_status=\"true\"|g" $0
       if [[ -f "$mount_dir/etc/os-release" ]]; then
         distro_name=$(cat $mount_dir/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
         if [[ "$distro_name" == "Arch Linux" ]]; then
           # Set config
-          sed -i "s|^device_choose=.*|device_choose=\"$device\"|g" $0
           sed -i "s|^mount_device_status=.*|mount_device_status=\"true\"|g" $0
-
           printf "${Ok} ${White}$distro_name device found!${None}\n"
           cp -f $0 $mount_dir/usr/bin
           chmod +x $mount_dir/usr/bin/$executable
@@ -211,16 +207,14 @@ function _mount_device(){
           printf "${Blue} $executable start ${None}\n"
           printf "${White} Press ENTER to enter the assembled system! ${None}\n"
           read
+          # Set config
+          sed -i "s|^device_choose=.*|device_choose=\"$device\"|g" $0
           # Enter system Arch Linux found
           arch-chroot $mount_dir /bin/bash
           # Load function _finishing
           _finishing
           exit 0
-        else
-          umount $mount_dir
         fi
-        else
-          umount $mount_dir
       fi
     done
 
@@ -242,7 +236,7 @@ function _mount_device(){
 
 # Function that initiates recovery
 function _recover_grub_start(){
-  if [[ $device_choose != "null" ]]; then
+  if [[ $device_choose != "none" ]]; then
     printf "${Wait} ${White}The $program_name will perform the upgrade and installation of Grub ${None}"
     _wait_spinner "5"
     grub-mkconfig -o /boot/grub/grub.cfg
@@ -258,110 +252,30 @@ function _recover_grub_start(){
 }
 
 
-number_partitions=( $(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n) )
-partitions=$(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
-
-echo "Number Partition: ${number_partitions}"
-echo "Partitions: ${partitions}"
-
-# for (( i = 0; i < ${#number_partitions[@]}; i++ )); do
-
-#   for x in $partitions; do
-#     if [[ $x == 7 ]]; then
-#       echo "arch linux"
-#       break
-#     fi
-#   done
-
-
-#   npartitions_refactored="$(expr ${#number_partitions[@]} - 1)"
-#   if [[ $i == $npartitions_refactored ]] && [[ ! -f "./etc/os-release" ]]; then
-#     printf "Partições sem sistema operacional\n"
-#     break
-#   fi
-# done
-
-
-for x in ${partitions}; do
-  if [[ $x == 4 ]]; then
-    echo "arch linux"
-    exit
-  fi
-done
-
-
-for (( i = 0; i < ${#number_partitions[@]}; i++ )); do
-  npartitions_refactored="$(expr ${#number_partitions[@]} - 1)"
-  if [[ $i == $npartitions_refactored ]] && [[ ! -f "./etc/os-release" ]]; then
-    printf "Partições sem sistema operacional\n"
-    break
-  fi
-done
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#   for x in 2 5 4 7 6; do
-#     if [[ $x  ]]; then
-#       #statements
-#     fi
-#   done
-
-# if [[ $search_os_release == "false" ]]; then
-#  printf "${Error} ${White} Sorry, but it seems that the mounted partitions did not return the file: \"/etc/os-release\" :(\n${None}"
-# fi
-
-
-
-# NAMESERVERS=("ns1.nixcraft.net." "ns2.nixcraft.net." "ns3.nixcraft.net.")
-
-# # get length of an array
-# tLen=${#NAMESERVERS[@]}
-
-# # use for loop read all nameservers
-# for (( i=0; i<${tLen}; i++ ));
-# do
-#   echo ${NAMESERVERS[$i]}
-# done
-
-# distro=("redhat" "debian" "gentoo")
-# echo ${distro[0]}
-# echo ${#distro[@]}
-
 # Menu
-# case "$1" in
-#    device)
-#       _mount_device "$2"
-#     ;;
-#    start)
-#     _recover_grub_start
-#    ;;
-#    credits)
-#     clear
-#     _credits
-#    ;;
-#    help)
-#     _help
-#    ;;
-#     *)
-#       printf "\n${Warning} ${White}Option not allowed! Use one of the options below. ${None}\n"
-#       _help
-#     ;;
-# esac
-# exit 0
+case "$1" in
+   device)
+      _mount_device "$2"
+    ;;
+   start)
+    _recover_grub_start
+   ;;
+   credits)
+    clear
+    _credits
+   ;;
+   help)
+    _help
+   ;;
+  # This option is not listed in help for reasons that will be for administration.
+    restartc)
+     _restart_config
+    ;;
+    *)
+      printf "\n${Warning} ${White}Option not allowed! Use one of the options below. ${None}\n"
+      _help
+    ;;
+esac
+exit 0
 
 # End
