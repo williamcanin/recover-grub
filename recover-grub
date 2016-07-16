@@ -215,21 +215,28 @@ function _mount_device(){
           arch-chroot $mount_dir /bin/bash
           # Load function _finishing
           _finishing
-          exit
+          exit 0
         else
           umount $mount_dir
         fi
+        else
+          umount $mount_dir
       fi
     done
 
-      npartitions=( $(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n) )
-      npartitions_refactored="$(expr ${#npartitions[@]} - 1)"
-      for (( x = 0; x < ${#npartitions[@]}; x++ )); do
-        if [[ $x == $npartitions_refactored ]] && [[ ! -f "$mount_dir/etc/os-release" ]]; then
-          printf "${Error} ${White} Sorry, but it seems that the mounted partitions did not return the file: \"${mount_dir}/etc/os-release\" :(\n${None}"
-        fi
-      done
+    npartitions=( $(lsblk -f | grep $type_partition | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n) )
+    npartitions_refactored="$(expr ${#npartitions[@]} - 1)"
+    for (( x = 0; x < ${#npartitions[@]}; x++ )); do
+      if [[ $x == $npartitions_refactored ]] && [[ ! -f "$mount_dir/etc/os-release" ]]; then
+        printf "${Error} ${White} Sorry, but it seems that the mounted partitions did not return the file: \"${mount_dir}/etc/os-release\" :(\n${None}"
+        exit 1
+      fi
+    done
 
+  else
+    printf "${Warnin} ${White}Mounting settings have been made. Run recover Grub with the command:${None}\n"
+    printf "${Blue} $executable start ${None}\n"
+    exit 0
   fi
 }
 
@@ -275,8 +282,8 @@ echo "Partitions: ${partitions}"
 # done
 
 
-for x in $partitions; do
-  if [[ $x == 71 ]]; then
+for x in ${partitions}; do
+  if [[ $x == 4 ]]; then
     echo "arch linux"
     exit
   fi
