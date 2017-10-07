@@ -48,7 +48,7 @@
 #
 mount_dir="/mnt"
 email="william.costa.canin@gmail.com"
-website="http://williamcanin.com"
+website="http://williamcanin.me"
 github="https://github.com/williamcanin"
 program_name="Recover Grub"
 executable="recover-grub"
