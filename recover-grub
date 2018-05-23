@@ -217,7 +217,7 @@ function _mount_device(){
       mount $boot_mountdevice$partition $mount_dir
       if [[ -f "$mount_dir/etc/os-release" ]]; then
         distro_name=$(cat $mount_dir/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
-        if [[ "$distro_name" == "Arch Linux" ]]; then
+        if [[ "$distro_name" == "Arch Linux" ]] || [[ "$distro_name" == "Manjaro Linux" ]]; then
           printf "${Ok} ${White}$distro_name device found!${None}\n"
           printf "${Ok} ${White}Files copied done.${None}\n"
           mount --bind /dev $mount_dir/dev
@@ -271,8 +271,8 @@ function _recover_grub_start(){
   if [[ $device_choose != "none" ]]; then
     printf "${Wait} ${White}The $program_name will perform the upgrade and installation of Grub ${None}"
     _wait_spinner "5"
+    grub-install $device_choose    
     grub-mkconfig -o /boot/grub/grub.cfg
-    grub-install $device_choose
     printf "${Ok} ${White}Successfully restructured Grub! We're almost done ... ${None}\n"
     printf "${Warning} ${White}Use command: exit ${None}\n"
     rm -f /usr/bin/$executable
