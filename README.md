@@ -12,7 +12,7 @@
 [ COMPATIBILITY ]
 
   By default, the "Recover Grub" is compatible only with the
-  Arch Linux distribution.
+  Arch Linux and Manjaro distribution.
 
 
 [ USAGE ]
