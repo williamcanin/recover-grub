@@ -212,7 +212,7 @@ function _mount_device(){
   if [[ $mount_status == "false" ]]; then
     _select_device
     # Array number of partitions
-    npartitions=$(lsblk -f | grep ext | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
+    npartitions=$(lsblk -f | grep ext | cut -d"e" -f1 | cut -d"a" -f2 | cut -d" " -f1 | sed ':a;$!N;s/\n//;ta;'n)
     for partition in ${npartitions}; do
       mount $boot_mountdevice$partition $mount_dir
       if [[ -f "$mount_dir/etc/os-release" ]]; then
@@ -302,6 +302,9 @@ case "$1" in
   # This option is not listed in help for reasons that will be for administration.
     restartc)
      _restart_config
+    ;;
+    test1)
+      _select_device
     ;;
     *)
       printf "\n${Warning} ${White}Option not allowed! Use one of the options below. ${None}\n"
