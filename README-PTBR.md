@@ -15,7 +15,7 @@
   distribuição Arch Linux e Manjaro.
 
 
-IMPORTANT !!! O "Recover Grub" não é compativel com instalações usando LVM.
+IMPORTANTE !!! O "Recover Grub" NÃO é compativel com instalações usando LVM ou Sistema de Arquivos instalado com criptografia.
 
 [ USAGE ]
 

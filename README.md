@@ -14,7 +14,7 @@
   By default, the "Recover Grub" is compatible only with the
   Arch Linux and Manjaro distribution.
 
-  IMPORTANT !!! The "Recover Grub" is not compatible with installations using LVM.
+  IMPORTANT !!! The "Recover Grub" is NOT compatible with installations using LVM or file system installed with encryption.
 
 
 [ USAGE ]
