@@ -5,19 +5,19 @@ PS3="Enter option: "
 
 # Spin function for messages in wait
 function _wait_spinner(){
-  sleep $1 &
-  PID=$!
-  i=1
-  sp="●◐◒◔◑◓●"
-  echo -n ' '
-  setterm -cursor off
-  printf ' '
-  while [ -d /proc/$PID ]
-  do
-    printf "\b${sp:i++%${#sp}:1}"
-  done
-  printf "\n"
-  setterm -cursor on
+    sleep $1 &
+    PID=$!
+    i=1
+    sp="●◐◒◔◑◓●"
+    echo -n ' '
+    setterm -cursor off
+    printf ' '
+    while [ -d /proc/$PID ]
+    do
+        printf "\b${sp:i++%${#sp}:1}"
+    done
+    printf "\n"
+    setterm -cursor on
 }
 
 # Function check if an element exist in a string
@@ -29,9 +29,9 @@ function _contains_element() {
 function _select_type_partition(){
     select type_device in "ext" "crypto_LUKS"; do
         if _contains_element "${type_device}" "ext" "crypto_LUKS"; then
-        break
+            break
         else
-        printf "Invalid option \n"
+            printf "Invalid option \n"
         fi
     done
 }
@@ -42,7 +42,6 @@ function _select_mount_partition_crypto(){
     if [[ -n $devices_list ]]; then
         select device in "${devices_list[@]}"; do
             if _contains_element "${device}" "${devices_list[@]}"; then
-                
                 # Open partition crypted
                 echo "cryptsetup open ${device} $3"
                 # Mount partition crypted
@@ -52,16 +51,12 @@ function _select_mount_partition_crypto(){
                 printf "Invalid option\n"
             fi
         done
-        
-
-        
     fi    
 }
 
 # Function to mount partitions of type EXT recursively.
 function _select_mount_partition_ext(){
     devices_list=( $(blkid | grep "$1" | awk '{print $1}' | cut -d":" -f1) )
-    
     for partition in ${devices_list}; do
         sudo mount $partition $2
         if [[ -f "$2/etc/os-release" ]]; then
@@ -80,9 +75,19 @@ function _select_mount_partition_ext(){
     done
 }
 
-# _select_type_partition
-# if [[ $type_device == "crypto_LUKS" ]]; then
-#     _select_mount_partition_crypto "crypto_LUKS" "/mnt" "filesystem"
-# else
-#     _select_mount_partition_ext "ext" "/mnt"
-# fi
+# Function started mount
+function _start_mount(){
+    _select_type_partition
+    if [[ $type_device == "crypto_LUKS" ]]; then
+        _select_mount_partition_crypto "crypto_LUKS" "/mnt" "filesystem"
+    else
+        _select_mount_partition_ext "ext" "/mnt"
+    fi
+}
+
+# Function Recover Grub
+function _recover_grub(){
+    if [[ -f "$2/etc/os-release" ]]; then
+        
+    fi
+}
