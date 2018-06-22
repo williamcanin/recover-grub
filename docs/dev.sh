@@ -2,6 +2,24 @@
 
 PS3="Enter option: "
 
+
+# Spin function for messages in wait
+function _wait_spinner(){
+  sleep $1 &
+  PID=$!
+  i=1
+  sp="●◐◒◔◑◓●"
+  echo -n ' '
+  setterm -cursor off
+  printf ' '
+  while [ -d /proc/$PID ]
+  do
+    printf "\b${sp:i++%${#sp}:1}"
+  done
+  printf "\n"
+  setterm -cursor on
+}
+
 # Function check if an element exist in a string
 function _contains_element() {
     for e in "${@:2}"; do [[ $e == $1 ]] && break; done;
@@ -49,6 +67,8 @@ function _select_mount_partition_ext(){
         if [[ -f "$2/etc/os-release" ]]; then
             distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
             if [[ "$distro_name" == "Arch Linux" ]] || [[ "$distro_name" == "Manjaro Linux" ]]; then
+                printf "Wait" 
+                _wait_spinner "5"
                 printf "$distro_name device found!\n"
                 exit 0
             else
@@ -60,10 +80,9 @@ function _select_mount_partition_ext(){
     done
 }
 
-_select_type_partition
-if [[ $type_device == "crypto_LUKS" ]]; then
-    _select_mount_partition_crypto "crypto_LUKS" "/mnt" "filesystem"
-else
-    _select_mount_partition_ext "ext" "/mnt"
-fi
-
+# _select_type_partition
+# if [[ $type_device == "crypto_LUKS" ]]; then
+#     _select_mount_partition_crypto "crypto_LUKS" "/mnt" "filesystem"
+# else
+#     _select_mount_partition_ext "ext" "/mnt"
+# fi
