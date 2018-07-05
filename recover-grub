@@ -209,6 +209,26 @@ function _select_mount_partition_crypto(){
                 echo "cryptsetup open ${device} ${name_crypto_open}"
                 # Mount partition crypted
                 echo "mount /dev/mapper/${name_crypto_open} $2"
+                if [[ -f "$2/etc/os-release" ]]; then
+                    distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
+                    if [[ "$distro_name" == "Arch Linux" ]]; then
+                        printf "Wait" 
+                        _wait_spinner "5"
+                        _msg_finish_ "${distro_name} found!"
+                        _mount_bind "${dir_mount}"
+                        _config_change "true"
+                        _copied_script_bin "${dir_mount}"
+                        # Enter system Arch Linux found
+                        chroot ${dir_mount} /bin/bash                
+                        _umount_partition "${dir_mount}"
+                        exit 0
+                    else
+                        umount $2          
+                    fi
+                else
+                    umount $2       
+                fi 
+
                 break
             else
                 _msg_error_ "Invalid option"
