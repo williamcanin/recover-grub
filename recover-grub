@@ -1,14 +1,27 @@
-#!/bin/bash
+#
+# Information:
+#
+# ******************************************************************************
+# Type: Shell Script
+# Description: Mount partition Arch Linux and Recover the Grub on Arch Linux
+# Script Name: Recover Grub
+# Project URL: https://github.com/williamcanin/recover-grub.git
+# URL Script: http://git.io/recover-grub
+
+# Author: William C. Canin
+#   Contacts:
+#   E-Mail: william.costa.canin@gmail.com
+#   WebSite: https://williamcanin.guthub.io
+#   GitHub: https://github.com/williamcanin
 
 
-
-### CONFIG ]
+# BEGIN
+#
+#### CONFIG ####
 # Note: This block is modified automatically according to the execution of the script. ###
 MOUNT_STATUS="true"
 #
-### ]
-
-# Global variables.
+##### Global variables ####
 appname="Recover Grub"
 appscript="recover-grub"
 version="2.0.0"
@@ -16,9 +29,10 @@ PS3="Enter option: "
 dir_mount="/mnt/temp"
 name_crypto_open="filesystem"
 crypto_type="crypto_LUKS"
+#
+#### Functions ####
 
-
-# Utils
+# Function for messages / colors.
 function _msg_header_() {
   printf "\e[0;36m→ %s\e[0m$2" "$1"
 }
@@ -39,8 +53,7 @@ function _msg_error_() {
   printf "\e[0;31m✖ %s\e[0m\n" "$@"
 }
 
-
-# Function welcome
+# Function welcome.
 function _welcome(){
 printf "\e[0;34m
 
@@ -56,7 +69,7 @@ printf "\e[0;34m
 \e[0m"
 }
 
-# Function show Credits
+# Function show credits.
 function _credits(){
 cat << EOT
 
@@ -79,7 +92,7 @@ cat << EOT
 EOT
 }
 
-# Function show help
+# Function show help.
 function _help(){
 cat << EOT
 
@@ -107,7 +120,7 @@ cat << EOT
 EOT
 }
 
-# Spin function for messages in wait
+# Spin function for messages in wait.
 function _wait_spinner(){
     sleep $1 &
     PID=$!
@@ -124,7 +137,7 @@ function _wait_spinner(){
     setterm -cursor on
 }
 
-# Function check if an element exist in a string
+# Function check if an element exist in a string.
 function _contains_element() {
     for e in "${@:2}"; do [[ $e == $1 ]] && break; done;
 }
@@ -299,7 +312,7 @@ function _select_mount_partition_ext(){
     fi
 }
 
-# Function started mount
+# Function started mount.
 function _start_mount(){
     _select_type_partition
     if [[ $type_device == "${crypto_type}" ]]; then
@@ -329,7 +342,8 @@ function _recover_grub(){
     fi 
 }
 
-# Menu
+##### Menu ####
+
 case "$1" in
     device)
         _welcome
@@ -351,5 +365,5 @@ case "$1" in
 esac
 exit 0
 
-### END 
-
+#
+# END 
