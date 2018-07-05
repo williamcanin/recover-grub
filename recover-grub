@@ -1,5 +1,14 @@
 #!/bin/bash
 
+
+
+### CONFIG ]
+# Note: This block is modified automatically according to the execution of the script. ###
+MOUNT_STATUS="false"
+#
+### ]
+
+# Global variables.
 appname="Recover Grub"
 appscript="recover-grub"
 version="2.0.0"
@@ -82,11 +91,10 @@ cat << EOT
 
   Options:
 
-    device            Find the partition where the Arch Linux is mounted
-                      and mounts.
+    device            This is the first option to be chosen.
                       A list of devices will be displayed, choose the
                       device where the Arch Linux is installed to recover
-                      the Grub.
+                      the Grub according to the options provided.
 
     start             Starts the recovery of Grub.
                       This option is enabled, after the use of the
@@ -121,6 +129,11 @@ function _contains_element() {
     for e in "${@:2}"; do [[ $e == $1 ]] && break; done;
 }
 
+# Function for change block CONFIG.
+function _config_change(){
+    sed -i "s|^MOUNT_STATUS=.*|MOUNT_STATUS=\"$1\"|g" $0
+}
+
 # Function to select the partition type. 
 function _select_type_partition(){
     _msg_header_ "Select the partition type that the system is installed on:" "\n"
@@ -133,28 +146,92 @@ function _select_type_partition(){
     done
 }
 
+# Function mount bind ('/dev', '/dev/pts', '/proc', '/sys').
+function _mount_bind(){
+    _msg_warning_ "Mount '/dev', '/dev/pts', '/proc', '/sys'..."
+    sudo mount --bind /dev $1/dev
+    sudo mount --bind /dev/pts $1/dev/pts
+    sudo mount --bind /proc $1/proc
+    sudo mount --bind /sys $1/sys    
+    _msg_finish_ "Done!"
+}
+
+# Function for umount all partition.
+function _umount_partition(){
+    umount -R $1
+    _msg_finish_ "Dismantling made partitions!"
+    _msg_finish_ "Successfully restructured Grub! No error!"
+    _msg_warning_ "Now you can restart the machine with the command: reboot"
+    rm -f $0
+}
+
+# Function copied script Recover Grub for /usr/bin of the assembled system.
+function _copied_script_bin(){
+    cp -f $0 $1/usr/bin
+    chmod +x $1/usr/bin/${appscript}
+}
+
+# Function select device.
+function _select_sd_hd_vd(){
+  _msg_header_ "Select the device in which the Grub will be recovered." "\n"
+  sd_hd_vd_list=(`lsblk -d | awk '{print "/dev/" $1}' | grep 'sd\|hd\|vd'`);
+  _msg_header_ "List devices options:" "\n"
+  select sd_hd_vd_choice in "${sd_hd_vd_list[@]}"; do
+    if _contains_element "${sd_hd_vd_choice}" "${sd_hd_vd_list[@]}"; then
+      break
+    else
+      _msg_error_ "Invalid option"
+    fi
+  done
+}
+
 # Function to select encrypted partitions (crypto_LUKS).
 function _select_mount_partition_crypto(){
     devices_list=( $(blkid | grep "$1" | awk '{print $1}' | cut -d":" -f1) )
     if [[ -n $devices_list ]]; then
-        echo
-        _msg_header_ "Select one of the encrypted partitions in the list:" "\n"
-        select device in "${devices_list[@]}"; do
-            if _contains_element "${device}" "${devices_list[@]}"; then
-                # Open partition crypted
-                echo "cryptsetup open ${device} $3"
-                # Mount partition crypted
-                echo "mount /dev/mapper/$3 $2"
-                break
+        
+        # DEPRECATED
+        # echo
+        # _msg_header_ "Select one of the encrypted partitions in the list:" "\n"
+        # select device in "${devices_list[@]}"; do
+        #     if _contains_element "${device}" "${devices_list[@]}"; then
+        #         # Open partition crypted
+        #         echo "cryptsetup open ${device} $3"
+        #         # Mount partition crypted
+        #         echo "mount /dev/mapper/$3 $2"
+        #         break
+        #     else
+        #         printf "Invalid option\n"
+        #     fi
+        # done
+
+        for partition in ${devices_list}; do
+            # Open partition crypted
+            cryptsetup open ${partition} $3  
+            # Mount partition crypted
+            mount /dev/mapper/$3 $2  
+            if [[ -f "$2/etc/os-release" ]]; then
+                distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
+                if [[ "$distro_name" == "Arch Linux" ]]; then
+                    printf "Wait" 
+                    _wait_spinner "5"
+                    _msg_finish_ "${distro_name} device found!"
+                    _mount_bind "${dir_mount}"
+                    _config_change "true"
+                    _copied_script_bin "${dir_mount}"
+                    # Enter system Arch Linux found
+                    chroot ${dir_mount} /bin/bash                
+                    _umount_partition "${dir_mount}"
+                    exit 0
+                else
+                    umount $2          
+                fi
             else
-                printf "Invalid option\n"
-            fi
+                umount $2       
+            fi        
         done
     fi    
 }
-
-# Function mount binds
-# function _mount_bind(){}
 
 # Function to mount partitions of type EXT recursively.
 function _select_mount_partition_ext(){
@@ -163,11 +240,17 @@ function _select_mount_partition_ext(){
         sudo mount $partition $2
         if [[ -f "$2/etc/os-release" ]]; then
             distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
-            if [[ "$distro_name" == "Arch Linux" ]] || [[ "$distro_name" == "Manjaro Linux" ]]; then
+            if [[ "$distro_name" == "Arch Linux" ]]; then
                 printf "Wait" 
                 _wait_spinner "5"
-                printf "$distro_name device found!\n"
-                # exit 0
+                _msg_finish_ "${distro_name} device found!"
+                _mount_bind "${dir_mount}"
+                _config_change "true"
+                _copied_script_bin "${dir_mount}"
+                # Enter system Arch Linux found
+                chroot ${dir_mount} /bin/bash                
+                _umount_partition "${dir_mount}"
+                exit 0
             else
                 umount $2          
             fi
@@ -187,20 +270,41 @@ function _start_mount(){
     fi
 }
 
-# Function Recover Grub
-# function _recover_grub(){
-   
-#     if [[ -f "${dir_mount}/etc/os-release" ]]; then
-#         distro_name=$(cat ${dir_mount}/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
-#         if [[ "$distro_name" == "Arch Linux" ]]; then
+# Function Recover Grub.
+function _recover_grub(){
+    _msg_header_ "The ${appname} will perform the upgrade and installation of Grub" "\n"
+    printf "Wait" 
+    _wait_spinner "3"
+    _select_sd_hd_vd
+    grub-mkconfig -o /boot/grub/grub.cfg    
+    grub-install ${sd_hd_vd_choice}
+    _msg_finish_ "Successfully restructured Grub!  ..."
+    _msg_warning_ "We're almost done...Use command: exit"
+    rm -f /usr/bin/${appscript}
+    exit 0    
+}
 
-#         fi    
-#     fi
-# }
+# Menu
+case "$1" in
+    device)
+        _welcome
+        _start_mount
+    ;;
+    start)
+        _recover_grub
+    ;;
+    credits)
+        _credits
+    ;;
+    help)
+        _help
+    ;;
+    *)
+        _msg_error_ "Option not allowed! Use one of the options below."
+        _help
+    ;;
+esac
+exit 0
 
-_welcome
- _start_mount
-
-
-# _recover_grub
+### END 
 
