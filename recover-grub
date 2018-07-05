@@ -4,7 +4,7 @@
 
 ### CONFIG ]
 # Note: This block is modified automatically according to the execution of the script. ###
-MOUNT_STATUS="false"
+MOUNT_STATUS="true"
 #
 ### ]
 
@@ -189,6 +189,18 @@ function _select_sd_hd_vd(){
 function _select_mount_partition_crypto(){
     devices_list=( $(blkid | grep "$1" | awk '{print $1}' | cut -d":" -f1) )
     if [[ -n $devices_list ]]; then
+        printf "\e[0;34m
+
+   ---------------------------------------------------------
+  |            Assembly of encrypted partition.             |
+   ---------------------------------------------------------
+  | The encrypted partition mount requires you to know      |
+  | which device is encrypted.                              |
+  | A list below will be displayed, just choose the         |
+  | encrypted partition that the filesystem installed.      |
+  |---------------------------------------------------------|
+
+        \e[0m"    
         echo
         _msg_header_ "Select one of the encrypted partitions in the list:" "\n"
         select device in "${devices_list[@]}"; do
@@ -199,7 +211,7 @@ function _select_mount_partition_crypto(){
                 echo "mount /dev/mapper/${name_crypto_open} $2"
                 break
             else
-                printf "Invalid option\n"
+                _msg_error_ "Invalid option"
             fi
         done
 
@@ -279,16 +291,22 @@ function _start_mount(){
 
 # Function Recover Grub.
 function _recover_grub(){
-    _msg_header_ "The ${appname} will perform the upgrade and installation of Grub" "\n"
-    printf "Wait" 
-    _wait_spinner "3"
-    _select_sd_hd_vd
-    grub-mkconfig -o /boot/grub/grub.cfg    
-    grub-install ${sd_hd_vd_choice}
-    _msg_finish_ "Successfully restructured Grub!  ..."
-    _msg_warning_ "We're almost done...Use command: exit"
-    rm -f /usr/bin/${appscript}
-    exit 0    
+    if [[ ${MOUNT_STATUS} == "true" ]]; then
+        _msg_header_ "The ${appname} will perform the upgrade and installation of Grub" "\n"
+        echo
+        printf "Wait" 
+        _wait_spinner "3"
+        _select_sd_hd_vd
+        grub-mkconfig -o /boot/grub/grub.cfg    
+        grub-install ${sd_hd_vd_choice}
+        _msg_finish_ "Successfully restructured Grub!  ..."
+        _msg_warning_ "We're almost done...Use command: exit"
+        rm -f /usr/bin/${appscript}
+        exit 0
+    else
+        _msg_error_ "You can only start Grub recovery if everything is set up! Use the 'device' option first."
+        exit 1
+    fi 
 }
 
 # Menu
