@@ -189,33 +189,64 @@ function _select_sd_hd_vd(){
 function _select_mount_partition_crypto(){
     devices_list=( $(blkid | grep "$1" | awk '{print $1}' | cut -d":" -f1) )
     if [[ -n $devices_list ]]; then
-        
-        # DEPRECATED
-        # echo
-        # _msg_header_ "Select one of the encrypted partitions in the list:" "\n"
-        # select device in "${devices_list[@]}"; do
-        #     if _contains_element "${device}" "${devices_list[@]}"; then
-        #         # Open partition crypted
-        #         echo "cryptsetup open ${device} $3"
-        #         # Mount partition crypted
-        #         echo "mount /dev/mapper/$3 $2"
-        #         break
-        #     else
-        #         printf "Invalid option\n"
-        #     fi
-        # done
+        echo
+        _msg_header_ "Select one of the encrypted partitions in the list:" "\n"
+        select device in "${devices_list[@]}"; do
+            if _contains_element "${device}" "${devices_list[@]}"; then
+                # Open partition crypted
+                echo "cryptsetup open ${device} ${name_crypto_open}"
+                # Mount partition crypted
+                echo "mount /dev/mapper/${name_crypto_open} $2"
+                break
+            else
+                printf "Invalid option\n"
+            fi
+        done
 
+        # DEPRECATED
+        # for partition in ${devices_list}; do
+        #     # Open partition crypted
+        #     cryptsetup open ${partition} ${name_crypto_open}
+        #     # Mount partition crypted
+        #     mount /dev/mapper/${name_crypto_open} $2  
+        #     if [[ -f "$2/etc/os-release" ]]; then
+        #         distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
+        #         if [[ "$distro_name" == "Arch Linux" ]]; then
+        #             printf "Wait" 
+        #             _wait_spinner "5"
+        #             _msg_finish_ "${distro_name} found!"
+        #             _mount_bind "${dir_mount}"
+        #             _config_change "true"
+        #             _copied_script_bin "${dir_mount}"
+        #             # Enter system Arch Linux found
+        #             chroot ${dir_mount} /bin/bash                
+        #             _umount_partition "${dir_mount}"
+        #             exit 0
+        #         else
+        #             umount $2          
+        #         fi
+        #     else
+        #         umount $2       
+        #     fi        
+        # done
+    else
+        _msg_finish_ "No device of type '$1' was found. ${appname} can not continue. :("
+        exit 1
+    fi    
+}
+
+# Function to mount partitions of type EXT recursively.
+function _select_mount_partition_ext(){
+    devices_list=( $(blkid | grep "$1" | awk '{print $1}' | cut -d":" -f1) )
+    if [[ -n $devices_list ]]; then
         for partition in ${devices_list}; do
-            # Open partition crypted
-            cryptsetup open ${partition} $3  
-            # Mount partition crypted
-            mount /dev/mapper/$3 $2  
+            sudo mount $partition $2
             if [[ -f "$2/etc/os-release" ]]; then
                 distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
                 if [[ "$distro_name" == "Arch Linux" ]]; then
                     printf "Wait" 
                     _wait_spinner "5"
-                    _msg_finish_ "${distro_name} device found!"
+                    _msg_finish_ "${distro_name} found!"
                     _mount_bind "${dir_mount}"
                     _config_change "true"
                     _copied_script_bin "${dir_mount}"
@@ -228,43 +259,19 @@ function _select_mount_partition_crypto(){
                 fi
             else
                 umount $2       
-            fi        
-        done
-    fi    
-}
-
-# Function to mount partitions of type EXT recursively.
-function _select_mount_partition_ext(){
-    devices_list=( $(blkid | grep "$1" | awk '{print $1}' | cut -d":" -f1) )
-    for partition in ${devices_list}; do
-        sudo mount $partition $2
-        if [[ -f "$2/etc/os-release" ]]; then
-            distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
-            if [[ "$distro_name" == "Arch Linux" ]]; then
-                printf "Wait" 
-                _wait_spinner "5"
-                _msg_finish_ "${distro_name} device found!"
-                _mount_bind "${dir_mount}"
-                _config_change "true"
-                _copied_script_bin "${dir_mount}"
-                # Enter system Arch Linux found
-                chroot ${dir_mount} /bin/bash                
-                _umount_partition "${dir_mount}"
-                exit 0
-            else
-                umount $2          
             fi
-        else
-            umount $2       
-        fi
-    done
+        done
+    else
+        _msg_finish_ "No device of type '$1' was found. ${appname} can not continue. :("
+        exit 1
+    fi
 }
 
 # Function started mount
 function _start_mount(){
     _select_type_partition
     if [[ $type_device == "${crypto_type}" ]]; then
-        _select_mount_partition_crypto "${crypto_type}" "${dir_mount}" "${name_crypto_open}"
+        _select_mount_partition_crypto "${crypto_type}" "${dir_mount}"
     else
         _select_mount_partition_ext "ext" "${dir_mount}"
     fi
