@@ -1,3 +1,0 @@
-blkid | cut -d":" -f1
-lsblk -f -l | grep ext | awk '{print $1}'
-blkid | grep "ext4" | awk '{print $1}' | cut -d":" -f1
