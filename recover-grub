@@ -1,112 +1,69 @@
 #!/bin/bash
-#
-# Information:
-#
-# ******************************************************************************
-# Type: Shell Script
-# Description: Mount partition Arch Linux and Recover the Grub on Arch Linux
-# Script Name: Recover Grub
-# Release Status: 1.1.1
-# Project URL: https://github.com/williamcanin/recover-grub.git
-# URL Script: http://git.io/recover-grub
 
-# Author: William C. Canin
-#   Contacts:
-#   E-Mail: william.costa.canin@gmail.com
-#   WebSite: http://williamcanin.guthub.io
-#   GitHub: https://github.com/williamcanin
+appname="Recover Grub"
+appscript="recover-grub"
+version="2.0.0"
+PS3="Enter option: "
+dir_mount="/mnt/temp"
+name_crypto_open="filesystem"
+crypto_type="crypto_LUKS"
 
 
-# License:
-# The MIT License (MIT) for Recover Grub
+# Utils
+function _msg_header_() {
+  printf "\e[0;36m→ %s\e[0m$2" "$1"
+}
 
-# Copyright (c) 2015-2016 William C. Canin <william.costa.canin@gmail.com>
+function _msg_reply_() {
+  printf "\e[0;36m→ %s\e[0m$2" "$1"
+}
 
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
+function _msg_finish_() {
+  printf "\e[0;32m✔ %s\e[0m\n" "$@"
+}
 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+function _msg_warning_() {
+  printf "\e[0;33m⚠ %s\e[0m\n" "$@"
+}
 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-# ******************************************************************************
-#
+function _msg_error_() {
+  printf "\e[0;31m✖ %s\e[0m\n" "$@"
+}
 
-# Begin
 
-# Constants
-#
-mount_dir="/mnt"
-email="william.costa.canin@gmail.com"
-website="http://williamcanin.me"
-github="https://github.com/williamcanin"
-program_name="Recover Grub"
-executable="recover-grub"
-year_current="$(date +%Y)"
-prompt1="Enter your option: "
-# COLORS
-Bold=$(tput bold)
-Underline=$(tput sgr 0 1)
-None=$(tput sgr0)
-# Regular Colors
-Red=$(tput setaf 1)
-Green=$(tput setaf 2)
-Yellow=$(tput setaf 3)
-Blue=$(tput setaf 4)
-Purple=$(tput setaf 5)
-Cyan=$(tput setaf 6)
-White=$(tput setaf 7)
-# Bold
-BRed=${Bold}$(tput setaf 1)
-BGreen=${Bold}$(tput setaf 2)
-BYellow=${Bold}$(tput setaf 3)
-BBlue=${Bold}$(tput setaf 4)
-BPurple=${Bold}$(tput setaf 5)
-BCyan=${Bold}$(tput setaf 6)
-BWhite=${Bold}$(tput setaf 7)
+# Function welcome
+function _welcome(){
+printf "\e[0;34m
 
-# Messages
-Error="[${BRed} Error ${None}]"
-Warning="[${BYellow} Warning ${None}]"
-Info="[${BCyan} Info ${None}]"
-Ok="[${BGreen} Ok ${None}]"
-Wait="[${BWhite} Wait ${None}]"
+   ---------------------------------------------------------
+  |         Welcome - ${appname} - Version ${version}          |
+   ---------------------------------------------------------
+  | The ${appname} will perform the upgrade and           |
+  | installation of Grub in Linux.                          |
+  | You will be guided by ${appname} to perform all       |
+  | procedures.                                             |
+  |---------------------------------------------------------|
 
-# Config - Program manipulation
-device_choose="none"
-mount_status="false"
-
-# Variables
-version="1.1.1"
-
+\e[0m"
+}
 
 # Function show Credits
 function _credits(){
 cat << EOT
 
    ---------------------------------------------------------
-  |               ${program_name} - Version ${version}              |
+  |               ${appname} - Version ${version}              |
    ---------------------------------------------------------
   |                         Credits:                        |
   |                                                         |
   |           Author: William da Costa Canin                |
-  |           E-Mail: $email         |
-  |           Website: $website              |
-  |           GitHub: $github       |
+  |           E-Mail: william.costa.canin@gmail.com         |
+  |           Website: https://williamcanin.me              |
+  |           GitHub: https://github.com/williamcanin       |
   |           Locale: Brazil - SP                           |
   |                                                         |
   |                                                         |
-  |    ${program_name} © 2015-$year_current - All Right Reserved.       |
+  |    ${appname} © 2015-$(date +%Y) - All Right Reserved.       |
   |    Doc: http://github.com/williamcanin/recover-grub     |
   |---------------------------------------------------------|
 
@@ -118,10 +75,10 @@ function _help(){
 cat << EOT
 
  ---------------------------------------------------------
-|           Help  -  ${program_name} - Version ${version}         |
+|           Help  -  ${appname} - Version ${version}         |
  ---------------------------------------------------------
 
- Usage: $executable [options]
+ Usage: $appscript [options]
 
   Options:
 
@@ -142,46 +99,21 @@ cat << EOT
 EOT
 }
 
-
 # Spin function for messages in wait
 function _wait_spinner(){
-  sleep $1 &
-  PID=$!
-  i=1
-  sp="/-\|"
-  echo -n ' '
-  setterm -cursor off
-  printf ' '
-  while [ -d /proc/$PID ]
-  do
-    printf "\b${sp:i++%${#sp}:1}"
-  done
-  printf "\n"
-  setterm -cursor on
-}
-
-# Checks whether the Grub Recover program will run on a Arch Linux distribution
-function _check_current_system(){
-  current_system=$(cat /etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
-  if [[ $current_system != "Arch Linux" ]]; then
-    printf "${Error} ${Red} You can not run this program for Fedora at the moment only for Arch Linux.${None}\n"
-    exit 1
-  fi
-}
-
-# Function restart variables config - This development
-function _restart_config(){
-  sed -i "s|^device_choose=.*|device_choose=\"none\"|g" $0
-  sed -i "s|^mount_status=.*|mount_status=\"false\"|g" $0
-}
-
-# Script shutdown function
-function _finishing(){
-  umount -R $mount_dir
-  printf "${Ok} Dismantling made partitions!\n"
-  printf "${Ok} ${White}Successfully restructured Grub! No error! \n${None}"
-  printf "${Info} ${Cyan}Now you can restart the machine with the command: ${BBlue}reboot \n${None}"
-  rm -f $0
+    sleep $1 &
+    PID=$!
+    i=1
+    sp="●◐◒◔◑◓●"
+    echo -n ' '
+    setterm -cursor off
+    printf ' '
+    while [ -d /proc/$PID ]
+    do
+        printf "\b${sp:i++%${#sp}:1}"
+    done
+    printf "\n"
+    setterm -cursor on
 }
 
 # Function check if an element exist in a string
@@ -189,125 +121,86 @@ function _contains_element() {
     for e in "${@:2}"; do [[ $e == $1 ]] && break; done;
 }
 
-# Function select device
-function _select_device(){
-  printf "${Info} ${BCyan} Select the device in which the Grub will be recovered. ${None}\n\n"
-  devices_list=(`lsblk -d | awk '{print "/dev/" $1}' | grep 'sd\|hd\|vd'`);
-  PS3="$prompt1"
-  printf "List devices options:\n\n"
-  select device in "${devices_list[@]}"; do
-    if _contains_element "${device}" "${devices_list[@]}"; then
-      break
-    else
-      printf "${Error} ${Red} Invalid option ${None}\n"
-    fi
-  done
-  boot_mountdevice="$device"
-}
-
-
-# Function responsible for capturing the partition of Arch Linux and assemble.
-function _mount_device(){
-  _check_current_system
-  if [[ $mount_status == "false" ]]; then
-    _select_device
-    # Array number of partitions
-    npartitions=$(lsblk -f | grep ext | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n)
-    for partition in ${npartitions}; do
-      mount $boot_mountdevice$partition $mount_dir
-      if [[ -f "$mount_dir/etc/os-release" ]]; then
-        distro_name=$(cat $mount_dir/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
-        if [[ "$distro_name" == "Arch Linux" ]] || [[ "$distro_name" == "Manjaro Linux" ]]; then
-          printf "${Ok} ${White}$distro_name device found!${None}\n"
-          printf "${Ok} ${White}Files copied done.${None}\n"
-          mount --bind /dev $mount_dir/dev
-          mount --bind /dev/pts $mount_dir/dev/pts
-          mount --bind /proc $mount_dir/proc
-          mount --bind /sys $mount_dir/sys
-          printf "${Ok} ${White}Mounts directories done.${None}\n"
-          printf "${Wait} ${White}Finding the $distro_name system ${None}"
-          _wait_spinner "5"
-          printf "${Ok} ${White} $program_name system found! ${None}\n"
-          printf "${Warning} ${Yellow} Attention! Run the following command to start the recovery: ${None}\n"
-          printf "${Blue} $executable start ${None}\n"
-          printf "${White} Press ENTER to enter the assembled system! ${None}\n"
-          read
-          sed -i "s|^mount_status=.*|mount_status=\"true\"|g" $0
-          sed -i "s|^device_choose=.*|device_choose=\"$boot_mountdevice\"|g" $0
-          cp -f $0 $mount_dir/usr/bin
-          chmod +x $mount_dir/usr/bin/$executable
-          # Enter system Arch Linux found
-          chroot $mount_dir /bin/bash
-          # Load function _finishing
-          _finishing
-          exit 0
+# Function to select the partition type. 
+function _select_type_partition(){
+    _msg_header_ "Select the partition type that the system is installed on:" "\n"
+    select type_device in "ext" "${crypto_type}"; do
+        if _contains_element "${type_device}" "ext" "${crypto_type}"; then
+            break
         else
-          umount $mount_dir
+            printf "Invalid option \n"
         fi
-      else
-        umount $mount_dir
-      fi
     done
-
-    # Array qtde of partitions
-    qtdpartitions=( $(lsblk -f | grep ext | cut -d"e" -f1 | cut -d"a" -f2 | sed ':a;$!N;s/\n//;ta;'n) )
-    qtdpartitions_refactored="$(expr ${#qtdpartitions[@]} - 1)"
-    for (( x = 0; x < ${#qtdpartitions[@]}; x++ )); do
-      if [[ $x == $qtdpartitions_refactored ]] && [[ ! -f "$mount_dir/etc/os-release" ]]; then
-        printf "${Error} ${White} Sorry, but it seems that the mounted partitions did not return the file: \"${mount_dir}/etc/os-release\" :(\n${None}"
-        exit 1
-      fi
-    done
-
-  else
-    printf "${Warnin} ${White}Mounting settings have been made. Run recover Grub with the command:${None}\n"
-    printf "${Blue} $executable start ${None}\n"
-    exit 0
-  fi
 }
 
-# Function that initiates recovery
-function _recover_grub_start(){
-  if [[ $device_choose != "none" ]]; then
-    printf "${Wait} ${White}The $program_name will perform the upgrade and installation of Grub ${None}"
-    _wait_spinner "5"
-    grub-install $device_choose    
-    grub-mkconfig -o /boot/grub/grub.cfg
-    printf "${Ok} ${White}Successfully restructured Grub! We're almost done ... ${None}\n"
-    printf "${Warning} ${White}Use command: exit ${None}\n"
-    rm -f /usr/bin/$executable
-    exit 0
-  else
-    printf "${Error} ${White}There was an error in the device choice before entering the Arch Linux.${None}\n"
-    exit 1
-  fi
+# Function to select encrypted partitions (crypto_LUKS).
+function _select_mount_partition_crypto(){
+    devices_list=( $(blkid | grep "$1" | awk '{print $1}' | cut -d":" -f1) )
+    if [[ -n $devices_list ]]; then
+        echo
+        _msg_header_ "Select one of the encrypted partitions in the list:" "\n"
+        select device in "${devices_list[@]}"; do
+            if _contains_element "${device}" "${devices_list[@]}"; then
+                # Open partition crypted
+                echo "cryptsetup open ${device} $3"
+                # Mount partition crypted
+                echo "mount /dev/mapper/$3 $2"
+                break
+            else
+                printf "Invalid option\n"
+            fi
+        done
+    fi    
 }
 
+# Function mount binds
+# function _mount_bind(){}
 
-# Menu
-case "$1" in
-   device)
-      _mount_device
-    ;;
-   start)
-    _recover_grub_start
-   ;;
-   credits)
-    clear
-    _credits
-   ;;
-   help)
-    _help
-   ;;
-  # This option is not listed in help for reasons that will be for administration.
-    restartc)
-     _restart_config
-    ;;
-    *)
-      printf "\n${Warning} ${White}Option not allowed! Use one of the options below. ${None}\n"
-      _help
-    ;;
-esac
-exit 0
+# Function to mount partitions of type EXT recursively.
+function _select_mount_partition_ext(){
+    devices_list=( $(blkid | grep "$1" | awk '{print $1}' | cut -d":" -f1) )
+    for partition in ${devices_list}; do
+        sudo mount $partition $2
+        if [[ -f "$2/etc/os-release" ]]; then
+            distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
+            if [[ "$distro_name" == "Arch Linux" ]] || [[ "$distro_name" == "Manjaro Linux" ]]; then
+                printf "Wait" 
+                _wait_spinner "5"
+                printf "$distro_name device found!\n"
+                # exit 0
+            else
+                umount $2          
+            fi
+        else
+            umount $2       
+        fi
+    done
+}
 
-# End
+# Function started mount
+function _start_mount(){
+    _select_type_partition
+    if [[ $type_device == "${crypto_type}" ]]; then
+        _select_mount_partition_crypto "${crypto_type}" "${dir_mount}" "${name_crypto_open}"
+    else
+        _select_mount_partition_ext "ext" "${dir_mount}"
+    fi
+}
+
+# Function Recover Grub
+# function _recover_grub(){
+   
+#     if [[ -f "${dir_mount}/etc/os-release" ]]; then
+#         distro_name=$(cat ${dir_mount}/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
+#         if [[ "$distro_name" == "Arch Linux" ]]; then
+
+#         fi    
+#     fi
+# }
+
+_welcome
+ _start_mount
+
+
+# _recover_grub
+
