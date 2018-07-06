@@ -12,10 +12,7 @@
 [ COMPATIBILIDADE ]
 
   Por padrão, o "Recover Grub" é compativel apenas com a
-  distribuição Arch Linux e Manjaro.
-
-
-IMPORTANTE !!! O "Recover Grub" NÃO é compativel com instalações usando LVM ou Sistema de Arquivos instalado com criptografia.
+  distribuição Arch Linux.
 
 [ USAGE ]
 
