@@ -249,34 +249,6 @@ function _select_mount_partition_crypto(){
             fi
         done
 
-        # DEPRECATED
-        # This option can not be recursive because the encrypted partitions require password.
-        #
-        # for partition in ${devices_list}; do
-        #     # Open partition crypted
-        #     cryptsetup open ${partition} ${name_crypto_open}
-        #     # Mount partition crypted
-        #     mount /dev/mapper/${name_crypto_open} $2  
-        #     if [[ -f "$2/etc/os-release" ]]; then
-        #         distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
-        #         if [[ "$distro_name" == "Arch Linux" ]]; then
-        #             printf "Wait" 
-        #             _wait_spinner "5"
-        #             _msg_finish_ "${distro_name} found!"
-        #             _mount_bind "${dir_mount}"
-        #             _config_change "true"
-        #             _copied_script_bin "${dir_mount}"
-        #             # Enter system Arch Linux found
-        #             chroot ${dir_mount} /bin/bash                
-        #             _umount_partition "${dir_mount}"
-        #             exit 0
-        #         else
-        #             umount $2          
-        #         fi
-        #     else
-        #         umount $2       
-        #     fi        
-        # done
     else
         _msg_finish_ "No device of type '$1' was found. ${appname} can not continue. :("
         exit 1
