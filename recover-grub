@@ -27,7 +27,7 @@ appname="Recover Grub"
 appscript="recover-grub"
 version="1.1.2"
 PS3="Enter option: "
-dir_mount="/mnt/temp"
+dir_mount="/mnt"
 name_crypto_open="filesystem"
 crypto_type="crypto_LUKS"
 #
@@ -163,10 +163,10 @@ function _select_type_partition(){
 # Function mount bind ('/dev', '/dev/pts', '/proc', '/sys').
 function _mount_bind(){
     _msg_warning_ "Mount '/dev', '/dev/pts', '/proc', '/sys'..."
-    sudo mount --bind /dev $1/dev
-    sudo mount --bind /dev/pts $1/dev/pts
-    sudo mount --bind /proc $1/proc
-    sudo mount --bind /sys $1/sys    
+    mount --bind /dev $1/dev
+    mount --bind /dev/pts $1/dev/pts
+    mount --bind /proc $1/proc
+    mount --bind /sys $1/sys    
     _msg_finish_ "Done!"
 }
 
@@ -237,10 +237,10 @@ function _select_mount_partition_crypto(){
                         _umount_partition "${dir_mount}"
                         exit 0
                     else
-                        umount $2          
+                        umount -R $2          
                     fi
                 else
-                    umount $2       
+                    umount -R $2       
                 fi 
 
                 break
@@ -286,7 +286,7 @@ function _select_mount_partition_ext(){
     devices_list=( $(blkid | grep "$1" | awk '{print $1}' | cut -d":" -f1) )
     if [[ -n $devices_list ]]; then
         for partition in ${devices_list}; do
-            sudo mount $partition $2
+            mount $partition $2
             if [[ -f "$2/etc/os-release" ]]; then
                 distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
                 if [[ "$distro_name" == "Arch Linux" ]]; then
@@ -301,10 +301,10 @@ function _select_mount_partition_ext(){
                     _umount_partition "${dir_mount}"
                     exit 0
                 else
-                    umount $2          
+                    umount -R $2          
                 fi
             else
-                umount $2       
+                umount -R $2       
             fi
         done
     else
@@ -344,6 +344,9 @@ function _recover_grub(){
 }
 
 ##### Menu ####
+
+# Script run root.
+(( UID > 0 )) && { _msg_error_ "This script runs only with root user."; exit 1; }
 
 case "$1" in
     device)
