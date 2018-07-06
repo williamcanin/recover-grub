@@ -250,6 +250,8 @@ function _select_mount_partition_crypto(){
         done
 
         # DEPRECATED
+        # This option can not be recursive because the encrypted partitions require password.
+        #
         # for partition in ${devices_list}; do
         #     # Open partition crypted
         #     cryptsetup open ${partition} ${name_crypto_open}
