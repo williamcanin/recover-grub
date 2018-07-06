@@ -126,7 +126,7 @@ function _wait_spinner(){
     sleep $1 &
     PID=$!
     i=1
-    sp="●◐◒◔◑◓●"
+    sp="\-/\-/"
     echo -n ' '
     setterm -cursor off
     printf ' '
@@ -168,6 +168,17 @@ function _mount_bind(){
     mount --bind /proc $1/proc
     mount --bind /sys $1/sys    
     _msg_finish_ "Done!"
+}
+
+
+# Function to enter and notify that entered the chroot.
+function _chroot_open(){
+    _msg_warning_ "Attention! Run the following command to start the recovery:"
+    _msg_warning_ "${appscript} start"
+    _msg_header_ "Press ENTER to enter the assembled system!" "\n"
+    read    
+    # Enter system Arch Linux found
+    chroot ${dir_mount} /bin/bash   
 }
 
 # Function for umount all partition.
@@ -232,8 +243,7 @@ function _select_mount_partition_crypto(){
                         _mount_bind "${dir_mount}"
                         _config_change "true"
                         _copied_script_bin "${dir_mount}"
-                        # Enter system Arch Linux found
-                        chroot ${dir_mount} /bin/bash                
+                        _chroot_open
                         _umount_partition "${dir_mount}"
                         exit 0
                     else
@@ -270,8 +280,7 @@ function _select_mount_partition_ext(){
                     _mount_bind "${dir_mount}"
                     _config_change "true"
                     _copied_script_bin "${dir_mount}"
-                    # Enter system Arch Linux found
-                    chroot ${dir_mount} /bin/bash                
+                    _chroot_open               
                     _umount_partition "${dir_mount}"
                     exit 0
                 else
