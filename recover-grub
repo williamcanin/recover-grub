@@ -25,7 +25,7 @@ MOUNT_STATUS="true"
 ##### Global variables ####
 appname="Recover Grub"
 appscript="recover-grub"
-version="1.1.2"
+version="1.2.2"
 PS3="Enter option: "
 dir_mount="/mnt"
 name_crypto_open="filesystem"
