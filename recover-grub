@@ -330,7 +330,7 @@ function _select_mount_partition_crypto(){
                 else
                     _msg_error_ "This mounted partition does not contain the / etc / os-release file to perform the analysis. Try another partition!"
                     umount -R $2
-                    exit     
+                    exit 1    
                 fi 
 
                 break
@@ -370,7 +370,7 @@ function _select_mount_partition_ext(){
             else
                     _msg_error_ "This mounted partition does not contain the / etc / os-release file to perform the analysis. Try another partition!"
                     umount -R $2
-                    exit       
+                    exit 1      
             fi
         done
     else
