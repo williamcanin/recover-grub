@@ -306,9 +306,11 @@ function _select_mount_partition_crypto(){
         select device in "${devices_list[@]}"; do
             if _contains_element "${device}" "${devices_list[@]}"; then
                 # Open partition crypted
-                echo "cryptsetup open ${device} ${name_crypto_open}"
+                _msg_header_ "Attention! You must enter the encryption password at this time, press ENTER when you are ready." "\n"
+                read
+                cryptsetup open ${device} ${name_crypto_open}
                 # Mount partition crypted
-                echo "mount /dev/mapper/${name_crypto_open} $2"
+                mount /dev/mapper/${name_crypto_open} $2
                 if [[ -f "$2/etc/os-release" ]]; then
                     distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
                     if [[ "$distro_name" == "Arch Linux" ]]; then
@@ -321,10 +323,14 @@ function _select_mount_partition_crypto(){
                         _umount_partition "${dir_mount}"
                         exit 0
                     else
-                        umount -R $2          
+                        _msg_error_ "This distribution is not compatible. Reboot the process!"
+                        umount -R $2
+                        exit 1
                     fi
                 else
-                    umount -R $2       
+                    _msg_error_ "This mounted partition does not contain the / etc / os-release file to perform the analysis. Try another partition!"
+                    umount -R $2
+                    exit     
                 fi 
 
                 break
@@ -357,10 +363,14 @@ function _select_mount_partition_ext(){
                     _umount_partition "${dir_mount}"
                     exit 0
                 else
-                    umount -R $2          
+                    _msg_error_ "This distribution is not compatible. Reboot the process!"
+                    umount -R $2
+                    exit 1         
                 fi
             else
-                umount -R $2       
+                    _msg_error_ "This mounted partition does not contain the / etc / os-release file to perform the analysis. Try another partition!"
+                    umount -R $2
+                    exit       
             fi
         done
     else
