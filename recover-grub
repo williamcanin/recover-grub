@@ -20,7 +20,7 @@
 #
 #### CONFIG ####
 # Note: This block is modified automatically according to the execution of the script. ###
-MOUNT_STATUS="true"
+MOUNT_STATUS="false"
 #
 ##### Global variables ####
 appname="Recover Grub"
