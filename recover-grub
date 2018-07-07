@@ -236,12 +236,12 @@ function _select_type_partition(){
 
 # Function mount bind ('/dev', '/dev/pts', '/proc', '/sys').
 function _mount_bind(){
-    _msg_warning_ "Mount '/dev', '/dev/pts', '/proc', '/sys'..."
+    _msg_header_ "Mount '/dev', '/dev/pts', '/proc', '/sys'..." "\n"
     mount --bind /dev $1/dev
     mount --bind /dev/pts $1/dev/pts
     mount --bind /proc $1/proc
     mount --bind /sys $1/sys    
-    _msg_finish_ "Assembly Done!"
+    _msg_finish_ "Mount Done!"
 }
 
 
@@ -312,7 +312,7 @@ function _select_mount_partition_crypto(){
                 if [[ -f "$2/etc/os-release" ]]; then
                     distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
                     if [[ "$distro_name" == "Arch Linux" ]]; then
-                        _wait_message "Wait..." "2"
+                        _wait_message "Wait ..." "2"
                         _msg_finish_ "${distro_name} found!"
                         _mount_bind "${dir_mount}"
                         _config_change "true"
@@ -348,7 +348,7 @@ function _select_mount_partition_ext(){
             if [[ -f "$2/etc/os-release" ]]; then
                 distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
                 if [[ "$distro_name" == "Arch Linux" ]]; then
-                    _wait_message "Wait..." "2"
+                    _wait_message "Wait ..." "2"
                     _msg_finish_ "${distro_name} found!"
                     _mount_bind "${dir_mount}"
                     _config_change "true"
@@ -383,12 +383,21 @@ function _start_mount(){
 function _recover_grub(){
     if [[ ${MOUNT_STATUS} == "true" ]]; then
         _msg_header_ "The ${appname} will perform the upgrade and installation of Grub" "\n"
-        echo
-        _wait_message "Wait..." "2"
+        _wait_message "Wait ..." "1"
+
         _select_sd_hd_vd
-        grub-mkconfig -o /boot/grub/grub.cfg    
+
+        _msg_header_ "Installing Grub in ${sd_hd_vd_choice} ..." "\n"
         grub-install ${sd_hd_vd_choice}
-        _msg_finish_ "Successfully restructured Grub!  ..."
+        _msg_finish_ "Grub installation done!"
+
+        _msg_header_ "Updating Grub ..." "\n"
+        grub-mkconfig -o /boot/grub/grub.cfg
+        _msg_finish_ "Grub update performed!" 
+
+        _wait_message "One moment, making the last adjustments ..." "1"
+
+        _msg_finish_ "Successfully restructured Grub!"
         _msg_warning_ "We're almost done...Use command: exit"
         rm -f /usr/bin/${appscript}
         exit 0
