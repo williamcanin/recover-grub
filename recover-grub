@@ -257,10 +257,9 @@ function _chroot_open(){
 
 # Function for umount all partition.
 function _umount_partition(){
-    rm -f /usr/bin/${appscript}    
     # rm -f $0
     umount -R $1
-    _wait_message "Unmounting partitions ..." "3"
+    _wait_message "Unmounting partitions ..." "2"
     _msg_finish_ "Successfully restructured Grub! No error!"
     _msg_warning_ "Now you can restart the machine with the command: reboot"
 }
