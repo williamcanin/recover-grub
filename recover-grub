@@ -378,6 +378,14 @@ function _select_mount_partition_ext(){
 
 # Function started mount.
 function _start_mount(){
+    
+    if [[ ${MOUNT_STATUS} == "true" ]]; then
+        _msg_warning_ "Partitioning has already been done. Use the command below to start Grub recovery."
+        _msg_warning_ "bash $0 start"
+        exit 1
+    fi
+
+    _welcome
     _select_type_partition
     if [[ $type_device == "${crypto_type}" ]]; then
         _select_mount_partition_crypto "${crypto_type}" "${dir_mount}"
@@ -423,7 +431,6 @@ function _recover_grub(){
 
 case "$1" in
     device)
-        _welcome
         _start_mount
     ;;
     start)
