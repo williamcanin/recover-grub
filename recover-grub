@@ -257,10 +257,10 @@ function _chroot_open(){
 
 # Function for umount all partition.
 function _umount_partition(){
-    umount -R $1
     rm -f /usr/bin/${appscript}    
     # rm -f $0
-    _msg_finish_ "Dismantling made partitions!"
+    umount -R $1
+    _wait_message "Unmounting partitions ..." "3"
     _msg_finish_ "Successfully restructured Grub! No error!"
     _msg_warning_ "Now you can restart the machine with the command: reboot"
 }
@@ -325,11 +325,13 @@ function _select_mount_partition_crypto(){
                     else
                         _msg_error_ "This distribution is not compatible. Reboot the process!"
                         umount -R $2
+                        cryptsetup close ${name_crypto_open}
                         exit 1
                     fi
                 else
                     _msg_error_ "This mounted partition does not contain the / etc / os-release file to perform the analysis. Try another partition!"
                     umount -R $2
+                    cryptsetup close ${name_crypto_open}
                     exit 1    
                 fi 
 
@@ -363,14 +365,10 @@ function _select_mount_partition_ext(){
                     _umount_partition "${dir_mount}"
                     exit 0
                 else
-                    _msg_error_ "This distribution is not compatible. Reboot the process!"
                     umount -R $2
-                    exit 1         
                 fi
             else
-                    _msg_error_ "This mounted partition does not contain the / etc / os-release file to perform the analysis. Try another partition!"
-                    umount -R $2
-                    exit 1      
+                umount -R $2
             fi
         done
     else
@@ -405,12 +403,14 @@ function _recover_grub(){
         grub-mkconfig -o /boot/grub/grub.cfg
         _msg_finish_ "Grub update performed!" 
 
-        _wait_message "One moment, making the last adjustments ..." "1"
-
-        _msg_finish_ "Successfully restructured Grub!"
-        _msg_warning_ "We're almost done...Use command: exit"
+        _wait_message "One moment, making the last adjustments ..." "3"
+        
+        _msg_header_ "Erasing traces ..."
         rm -f /usr/bin/${appscript}
-        exit 0
+        _msg_finish_ "Done!"
+        
+        _msg_warning_ "Great! Now use the 'exit' command to exit the chroot."
+         exit 0
     else
         _msg_error_ "You can only start Grub recovery if everything is set up! Use the 'device' option first."
         exit 1
