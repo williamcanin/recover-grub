@@ -25,7 +25,7 @@ MOUNT_STATUS="true"
 ##### Global variables ####
 appname="Recover Grub"
 appscript="recover-grub"
-version="1.2.2"
+version="2.0"
 PS3="Enter option: "
 dir_mount="/mnt"
 name_crypto_open="filesystem"
@@ -121,22 +121,95 @@ cat << EOT
 EOT
 }
 
-# Spin function for messages in wait.
-function _wait_spinner(){
-    sleep $1 &
-    PID=$!
-    i=1
-    sp="\-/\-/"
-    echo -n ' '
-    setterm -cursor off
-    printf ' '
-    while [ -d /proc/$PID ]
-    do
-        printf "\b${sp:i++%${#sp}:1}"
-    done
-    printf "\n"
-    setterm -cursor on
+
+# Functions Spinner for messages in wait.
+function _spinner() {
+    # $1 start/stop
+    #
+    # on start: $2 display message
+    # on stop : $2 process exit status
+    #           $3 spinner function pid (supplied from stop_spinner)
+
+    local on_success="Done"
+    local on_fail="Fail"
+
+    case $1 in
+        start)
+            # calculate the column where spinner and status msg will be displayed
+            let column=$(tput cols)-${#2}-20
+            # display message and position the cursor in $column column
+            echo -n ${2}
+            printf "%${column}s"        
+            # start spinner
+            i=1
+            sp='\|/-'
+            delay=${SPINNER_DELAY:-0.15}
+
+            while :
+            do
+                printf "\b${sp:i++%${#sp}:1}"
+                sleep $delay
+            done
+            ;;
+        stop)
+            if [[ -z ${3} ]]; then
+                echo "spinner is not running..."
+                exit 1
+            fi
+
+            kill $3 > /dev/null 2>&1
+
+            # inform the user uppon success or failure
+            echo -en "\b"
+            if [[ $2 -eq 0 ]]; then
+                _msg_finish_ "${on_success}"
+            else
+                _msg_finish_ "${on_fail}"
+            fi
+            echo -e ""
+            ;;
+    esac
 }
+
+function start_spinner {
+    # $1 : msg to display
+    _spinner "start" "${1}" &
+    # set global spinner pid
+    _sp_pid=$!
+    disown
+}
+
+function stop_spinner {
+    # $1 : command exit status
+    _spinner "stop" $1 $_sp_pid
+    unset _sp_pid
+}
+
+function _wait_message(){
+    start_spinner "$1"
+    sleep $2
+    stop_spinner $?     
+}
+
+# DEPRECATED
+# Spin function for messages in wait.
+# function _wait_spinner(){
+#     sleep $1 &
+#     PID=$!
+#     i=1
+#     sp="\|/-"
+#     echo -n ' '
+#     setterm -cursor off
+#     printf ' '
+#     delay=${SPINNER_DELAY:-0.15}
+#     while [ -d /proc/$PID ]
+#     do
+#         printf "\b${sp:i++%${#sp}:1}"
+#         sleep $delay
+#     done
+#     printf "\n"
+#     setterm -cursor on
+# }
 
 # Function check if an element exist in a string.
 function _contains_element() {
@@ -167,7 +240,7 @@ function _mount_bind(){
     mount --bind /dev/pts $1/dev/pts
     mount --bind /proc $1/proc
     mount --bind /sys $1/sys    
-    _msg_finish_ "Done!"
+    _msg_finish_ "Assembly Done!"
 }
 
 
@@ -184,10 +257,11 @@ function _chroot_open(){
 # Function for umount all partition.
 function _umount_partition(){
     umount -R $1
+    rm -f /usr/bin/${appscript}    
+    # rm -f $0
     _msg_finish_ "Dismantling made partitions!"
     _msg_finish_ "Successfully restructured Grub! No error!"
     _msg_warning_ "Now you can restart the machine with the command: reboot"
-    rm -f $0
 }
 
 # Function copied script Recover Grub for /usr/bin of the assembled system.
@@ -237,8 +311,7 @@ function _select_mount_partition_crypto(){
                 if [[ -f "$2/etc/os-release" ]]; then
                     distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
                     if [[ "$distro_name" == "Arch Linux" ]]; then
-                        printf "Wait" 
-                        _wait_spinner "5"
+                        _wait_message "Wait..." "2"
                         _msg_finish_ "${distro_name} found!"
                         _mount_bind "${dir_mount}"
                         _config_change "true"
@@ -274,8 +347,7 @@ function _select_mount_partition_ext(){
             if [[ -f "$2/etc/os-release" ]]; then
                 distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
                 if [[ "$distro_name" == "Arch Linux" ]]; then
-                    printf "Wait" 
-                    _wait_spinner "5"
+                    _wait_message "Wait..." "2"
                     _msg_finish_ "${distro_name} found!"
                     _mount_bind "${dir_mount}"
                     _config_change "true"
@@ -311,8 +383,7 @@ function _recover_grub(){
     if [[ ${MOUNT_STATUS} == "true" ]]; then
         _msg_header_ "The ${appname} will perform the upgrade and installation of Grub" "\n"
         echo
-        printf "Wait" 
-        _wait_spinner "3"
+        _wait_message "Wait..." "2"
         _select_sd_hd_vd
         grub-mkconfig -o /boot/grub/grub.cfg    
         grub-install ${sd_hd_vd_choice}
