@@ -219,7 +219,7 @@ function _contains_element() {
 
 # Function for change block CONFIG.
 function _config_change(){
-    sed -i "s|^MOUNT_STATUS=.*|MOUNT_STATUS=\"$1\"|g" $0
+    sed -i "s|^MOUNT_STATUS=.*|MOUNT_STATUS=\"$1\"|g" $2
 }
 
 # Function to select the partition type. 
@@ -267,6 +267,7 @@ function _umount_partition(){
 # Function copied script Recover Grub for /usr/bin of the assembled system.
 function _copied_script_bin(){
     cp -f $0 $1/usr/bin
+    _config_change "true" "${dir_mount}/usr/bin/${appscript}"
     chmod +x $1/usr/bin/${appscript}
 }
 
@@ -316,7 +317,6 @@ function _select_mount_partition_crypto(){
                         _wait_message "Wait ..." "2"
                         _msg_finish_ "${distro_name} found!"
                         _mount_bind "${dir_mount}"
-                        _config_change "true"
                         _copied_script_bin "${dir_mount}"
                         _chroot_open
                         _umount_partition "${dir_mount}"
@@ -358,7 +358,6 @@ function _select_mount_partition_ext(){
                     _wait_message "Wait ..." "2"
                     _msg_finish_ "${distro_name} found!"
                     _mount_bind "${dir_mount}"
-                    _config_change "true"
                     _copied_script_bin "${dir_mount}"
                     _chroot_open               
                     _umount_partition "${dir_mount}"
