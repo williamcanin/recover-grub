@@ -121,8 +121,8 @@ cat << EOT
 EOT
 }
 
-
 # Functions Spinner for messages in wait.
+# This spinner is inspired by: https://github.com/tlatsas/bash-spinner
 function _spinner() {
     # $1 start/stop
     #
@@ -184,6 +184,7 @@ function stop_spinner {
     _spinner "stop" $1 $_sp_pid
     unset _sp_pid
 }
+
 
 function _wait_message(){
     start_spinner "$1"
