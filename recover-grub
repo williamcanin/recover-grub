@@ -1,452 +1,68 @@
-#!/bin/bash
-#
-# Information:
-#
-# ******************************************************************************
-# Type: Shell Script
-# Description: Mount partition Arch Linux and Recover the Grub on Arch Linux
-# Script Name: Recover Grub
-# Project URL: https://github.com/williamcanin/recover-grub.git
-# URL Script: http://git.io/recover-grub
-
-# Author: William C. Canin
-#   Contacts:
-#   E-Mail: william.costa.canin@gmail.com
-#   WebSite: https://williamcanin.guthub.io
-#   GitHub: https://github.com/williamcanin
+#!/usr/bin/env python3
 
 
-# BEGIN
-#
-#### CONFIG ####
-# Note: This block is modified automatically according to the execution of the script. ###
-MOUNT_STATUS="false"
-#
-##### Global variables ####
-appname="Recover Grub"
-appscript="recover-grub"
-version="2.0"
-PS3="Enter option: "
-dir_mount="/mnt"
-name_crypto_open="filesystem"
-crypto_type="crypto_LUKS"
-#
-#### Functions ####
+class RecoverGrub():
 
-# Function for messages / colors.
-function _msg_header_() {
-  printf "\e[0;36m→ %s\e[0m$2" "$1"
-}
+    """ Config """
+    config = {'python_version': 3, 'modules': ['pyudev'], 'system': 'OS'}
 
-function _msg_reply_() {
-  printf "\e[0;36m→ %s\e[0m$2" "$1"
-}
+    """ Modules External """
+    def modules_external(self, all_packages: list):
+        from importlib import util
+        for item in all_packages:
+            spec = util.find_spec(item)
+            if spec is None:
+                try:
+                    import subprocess
+                    import sys
+                    subprocess.call([sys.executable, "-m", "pip", "install",
+                                    "--user", item])
+                except Exception as e:
+                    print('There was an error installing the dependencies.', e)
+                    exit(1)
+        return print('All dependencies have been resolved and installed.')
 
-function _msg_finish_() {
-  printf "\e[0;32m✔ %s\e[0m\n" "$@"
-}
+    """ Verify version Python """
+    def python_version_required(self, p_version: int):
+        import sys
+        if sys.version_info[0] < p_version:
+            raise Exception('Must be using Python {0}'.format(p_version))
 
-function _msg_warning_() {
-  printf "\e[0;33m⚠ %s\e[0m\n" "$@"
-}
+    """ Get Device SD/HD """
+    def get_device(self):
+        import pyudev
+        context = pyudev.Context()
+        for device in context.list_devices(MAJOR='8'):
+            if (device.device_type == 'disk'):
+                dev_node = device.device_node
+                # dev_type = device.device_type
+        return dev_node
 
-function _msg_error_() {
-  printf "\e[0;31m✖ %s\e[0m\n" "$@"
-}
+    """ Check OS"""
+    def check_system(self):
+        if self.config['system'].lower() == 'os':
+            from sys import platform
+            if platform == "linux" or platform == "linux2":
+                check_sys = 'linux'
+            elif platform == "darwin":
+                check_sys = 'osx'
+            elif platform == "win32":
+                check_sys = 'windows'
+        elif self.config['system'].lower() == 'distro':
+            import platform
+            check_sys = str(platform.dist()[0])
+        else:
+            raise Exception('Error check system.')
+        return check_sys
 
-# Function welcome.
-function _welcome(){
-printf "\e[0;34m
-
-   ---------------------------------------------------------
-  |         Welcome - ${appname} - Version ${version}          |
-   ---------------------------------------------------------
-  | The ${appname} will perform the upgrade and           |
-  | installation of Grub in Linux.                          |
-  | You will be guided by ${appname} to perform all       |
-  | procedures.                                             |
-  |---------------------------------------------------------|
-
-\e[0m"
-}
-
-# Function show credits.
-function _credits(){
-cat << EOT
-
-   ---------------------------------------------------------
-  |               ${appname} - Version ${version}              |
-   ---------------------------------------------------------
-  |                         Credits:                        |
-  |                                                         |
-  |           Author: William da Costa Canin                |
-  |           E-Mail: william.costa.canin@gmail.com         |
-  |           Website: https://williamcanin.me              |
-  |           GitHub: https://github.com/williamcanin       |
-  |           Locale: Brazil - SP                           |
-  |                                                         |
-  |                                                         |
-  |    ${appname} © 2015-$(date +%Y) - All Right Reserved.       |
-  |    Doc: http://github.com/williamcanin/recover-grub     |
-  |---------------------------------------------------------|
-
-EOT
-}
-
-# Function show help.
-function _help(){
-cat << EOT
-
- ---------------------------------------------------------
-|           Help  -  ${appname} - Version ${version}         |
- ---------------------------------------------------------
-
- Usage: $appscript [options]
-
-  Options:
-
-    device            This is the first option to be chosen.
-                      A list of devices will be displayed, choose the
-                      device where the Arch Linux is installed to recover
-                      the Grub according to the options provided.
-
-    start             Starts the recovery of Grub.
-                      This option is enabled, after the use of the
-                      'device' option and assemble the system.
-
-    credits           A list of credits of this program.
-
-    help              Output this instructions.
-
-EOT
-}
-
-# Functions Spinner for messages in wait.
-# This spinner is inspired by: https://github.com/tlatsas/bash-spinner
-function _spinner() {
-    # $1 start/stop
-    #
-    # on start: $2 display message
-    # on stop : $2 process exit status
-    #           $3 spinner function pid (supplied from stop_spinner)
-
-    local on_success="Done"
-    local on_fail="Fail"
-
-    case $1 in
-        start)
-            # calculate the column where spinner and status msg will be displayed
-            let column=$(tput cols)-${#2}-20
-            # display message and position the cursor in $column column
-            echo -n ${2}
-            printf "%${column}s"        
-            # start spinner
-            i=1
-            sp='\|/-'
-            delay=${SPINNER_DELAY:-0.15}
-
-            while :
-            do
-                printf "\b${sp:i++%${#sp}:1}"
-                sleep $delay
-            done
-            ;;
-        stop)
-            if [[ -z ${3} ]]; then
-                echo "spinner is not running..."
-                exit 1
-            fi
-
-            kill $3 > /dev/null 2>&1
-
-            # inform the user uppon success or failure
-            echo -en "\b"
-            if [[ $2 -eq 0 ]]; then
-                _msg_finish_ "${on_success}"
-            else
-                _msg_finish_ "${on_fail}"
-            fi
-            echo -e ""
-            ;;
-    esac
-}
-
-function start_spinner {
-    # $1 : msg to display
-    _spinner "start" "${1}" &
-    # set global spinner pid
-    _sp_pid=$!
-    disown
-}
-
-function stop_spinner {
-    # $1 : command exit status
-    _spinner "stop" $1 $_sp_pid
-    unset _sp_pid
-}
+    """ Main """
+    def main(self):
+        self.python_version_required(self.config['python_version'])
+        self.modules_external(self.config['modules'])
+        self.get_device()
+        self.check_system()
 
 
-function _wait_message(){
-    start_spinner "$1"
-    sleep $2
-    stop_spinner $?     
-}
-
-# DEPRECATED
-# Spin function for messages in wait.
-# function _wait_spinner(){
-#     sleep $1 &
-#     PID=$!
-#     i=1
-#     sp="\|/-"
-#     echo -n ' '
-#     setterm -cursor off
-#     printf ' '
-#     delay=${SPINNER_DELAY:-0.15}
-#     while [ -d /proc/$PID ]
-#     do
-#         printf "\b${sp:i++%${#sp}:1}"
-#         sleep $delay
-#     done
-#     printf "\n"
-#     setterm -cursor on
-# }
-
-# Function check if an element exist in a string.
-function _contains_element() {
-    for e in "${@:2}"; do [[ $e == $1 ]] && break; done;
-}
-
-# Function for change block CONFIG.
-function _config_change(){
-    sed -i "s|^MOUNT_STATUS=.*|MOUNT_STATUS=\"$1\"|g" $2
-}
-
-# Function to select the partition type. 
-function _select_type_partition(){
-    _msg_header_ "Select the partition type that the system is installed on:" "\n"
-    select type_device in "ext" "${crypto_type}"; do
-        if _contains_element "${type_device}" "ext" "${crypto_type}"; then
-            break
-        else
-            printf "Invalid option \n"
-        fi
-    done
-}
-
-# Function mount bind ('/dev', '/dev/pts', '/proc', '/sys').
-function _mount_bind(){
-    _msg_header_ "Mount '/dev', '/dev/pts', '/proc', '/sys'..." "\n"
-    mount --bind /dev $1/dev
-    mount --bind /dev/pts $1/dev/pts
-    mount --bind /proc $1/proc
-    mount --bind /sys $1/sys    
-    _msg_finish_ "Mount Done!"
-}
-
-
-# Function to enter and notify that entered the chroot.
-function _chroot_open(){
-    _msg_warning_ "Attention! Run the following command to start the recovery:"
-    _msg_warning_ "${appscript} start"
-    _msg_header_ "Press ENTER to enter the assembled system!" "\n"
-    read    
-    # Enter system Arch Linux found
-    chroot ${dir_mount} /bin/bash   
-}
-
-# Function for umount all partition.
-function _umount_partition(){
-    # rm -f $0
-    umount -R $1
-    _wait_message "Unmounting partitions ..." "2"
-    _msg_finish_ "Successfully restructured Grub! No error!"
-    _msg_warning_ "Now you can restart the machine with the command: reboot"
-}
-
-# Function copied script Recover Grub for /usr/bin of the assembled system.
-function _copied_script_bin(){
-    cp -f $0 $1/usr/bin
-    _config_change "true" "${dir_mount}/usr/bin/${appscript}"
-    chmod +x $1/usr/bin/${appscript}
-}
-
-# Function select device.
-function _select_sd_hd_vd(){
-  _msg_header_ "Select the device in which the Grub will be recovered." "\n"
-  sd_hd_vd_list=(`lsblk -d | awk '{print "/dev/" $1}' | grep 'sd\|hd\|vd'`);
-  _msg_header_ "List devices options:" "\n"
-  select sd_hd_vd_choice in "${sd_hd_vd_list[@]}"; do
-    if _contains_element "${sd_hd_vd_choice}" "${sd_hd_vd_list[@]}"; then
-      break
-    else
-      _msg_error_ "Invalid option"
-    fi
-  done
-}
-
-# Function to select encrypted partitions (crypto_LUKS).
-function _select_mount_partition_crypto(){
-    devices_list=( $(blkid | grep "$1" | awk '{print $1}' | cut -d":" -f1) )
-    if [[ -n $devices_list ]]; then
-        printf "\e[0;34m
-
-   ---------------------------------------------------------
-  |            Assembly of encrypted partition.             |
-   ---------------------------------------------------------
-  | The encrypted partition mount requires you to know      |
-  | which device is encrypted.                              |
-  | A list below will be displayed, just choose the         |
-  | encrypted partition that the filesystem installed.      |
-  |---------------------------------------------------------|
-
-        \e[0m"    
-        echo
-        _msg_header_ "Select one of the encrypted partitions in the list:" "\n"
-        select device in "${devices_list[@]}"; do
-            if _contains_element "${device}" "${devices_list[@]}"; then
-                # Open partition crypted
-                _msg_header_ "Attention! You must enter the encryption password at this time, press ENTER when you are ready." "\n"
-                read
-                cryptsetup open ${device} ${name_crypto_open}
-                # Mount partition crypted
-                mount /dev/mapper/${name_crypto_open} $2
-                if [[ -f "$2/etc/os-release" ]]; then
-                    distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
-                    if [[ "$distro_name" == "Arch Linux" ]]; then
-                        _wait_message "Wait ..." "2"
-                        _msg_finish_ "${distro_name} found!"
-                        _mount_bind "${dir_mount}"
-                        _copied_script_bin "${dir_mount}"
-                        _chroot_open
-                        _umount_partition "${dir_mount}"
-                        exit 0
-                    else
-                        _msg_error_ "This distribution is not compatible. Reboot the process!"
-                        umount -R $2
-                        cryptsetup close ${name_crypto_open}
-                        exit 1
-                    fi
-                else
-                    _msg_error_ "This mounted partition does not contain the / etc / os-release file to perform the analysis. Try another partition!"
-                    umount -R $2
-                    cryptsetup close ${name_crypto_open}
-                    exit 1    
-                fi 
-
-                break
-            else
-                _msg_error_ "Invalid option"
-            fi
-        done
-
-    else
-        _msg_finish_ "No device of type '$1' was found. ${appname} can not continue. :("
-        exit 1
-    fi    
-}
-
-# Function to mount partitions of type EXT recursively.
-function _select_mount_partition_ext(){
-    devices_list=( $(blkid | grep "$1" | awk '{print $1}' | cut -d":" -f1) )
-    if [[ -n $devices_list ]]; then
-        for partition in ${devices_list}; do
-            mount $partition $2
-            if [[ -f "$2/etc/os-release" ]]; then
-                distro_name=$(cat $2/etc/os-release | grep ^NAME | cut -d"=" -f2 | cut -d"\"" -f2)
-                if [[ "$distro_name" == "Arch Linux" ]]; then
-                    _wait_message "Wait ..." "2"
-                    _msg_finish_ "${distro_name} found!"
-                    _mount_bind "${dir_mount}"
-                    _copied_script_bin "${dir_mount}"
-                    _chroot_open               
-                    _umount_partition "${dir_mount}"
-                    exit 0
-                else
-                    umount -R $2
-                fi
-            else
-                umount -R $2
-            fi
-        done
-    else
-        _msg_finish_ "No device of type '$1' was found. ${appname} can not continue. :("
-        exit 1
-    fi
-}
-
-# Function started mount.
-function _start_mount(){
-    
-    if [[ ${MOUNT_STATUS} == "true" ]]; then
-        _msg_warning_ "Partitioning has already been done. Use the command below to start Grub recovery."
-        _msg_warning_ "bash $0 start"
-        exit 1
-    fi
-
-    _welcome
-    _select_type_partition
-    if [[ $type_device == "${crypto_type}" ]]; then
-        _select_mount_partition_crypto "${crypto_type}" "${dir_mount}"
-    else
-        _select_mount_partition_ext "ext" "${dir_mount}"
-    fi
-}
-
-# Function Recover Grub.
-function _recover_grub(){
-    if [[ ${MOUNT_STATUS} == "true" ]]; then
-        _msg_header_ "The ${appname} will perform the upgrade and installation of Grub" "\n"
-        _wait_message "Wait ..." "1"
-
-        _select_sd_hd_vd
-
-        _msg_header_ "Installing Grub in ${sd_hd_vd_choice} ..." "\n"
-        grub-install ${sd_hd_vd_choice}
-        _msg_finish_ "Grub installation done!"
-
-        _msg_header_ "Updating Grub ..." "\n"
-        grub-mkconfig -o /boot/grub/grub.cfg
-        _msg_finish_ "Grub update performed!" 
-
-        _wait_message "One moment, making the last adjustments ..." "3"
-        
-        _msg_header_ "Erasing traces ..."
-        rm -f /usr/bin/${appscript}
-        _msg_finish_ "Done!"
-        
-        _msg_warning_ "Great! Now use the 'exit' command to exit the chroot."
-         exit 0
-    else
-        _msg_error_ "You can only start Grub recovery if everything is set up! Use the 'device' option first."
-        exit 1
-    fi 
-}
-
-##### Menu ####
-
-# Script run root.
-(( UID > 0 )) && { _msg_error_ "This script runs only with root user."; exit 1; }
-
-case "$1" in
-    device)
-        _start_mount
-    ;;
-    start)
-        _recover_grub
-    ;;
-    credits)
-        _credits
-    ;;
-    help)
-        _help
-    ;;
-    *)
-        _msg_error_ "Option not allowed! Use one of the options below."
-        _help
-    ;;
-esac
-exit 0
-
-#
-# END 
+if __name__ == '__main__':
+    recover_grub = RecoverGrub()
+    recover_grub.main()

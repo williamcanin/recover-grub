@@ -11,32 +11,14 @@
 
 [ COMPATIBILIDADE ]
 
-  Por padrão, o "Recover Grub" é compativel apenas com a
-  distribuição Arch Linux.
+
 
 [ USAGE ]
 
   A - Insira o CD/DVD (ou Pendrive Bootável) da distribuição Arch Linux
       na máquina e dê boot.
 
-  B - Após iniciar o terminal do Arch Linux, deve realizar uma conexão
-      com a internet para realizar o download o "Recover Grub" e
-      posteriormente executa-lo.
-      Se a máquina está conectada através de um cabo de rede, provavelmente
-      a conexão já está disponivel (se não está, configure).
-      Se for conexão por Wifi, use o comando:
-
-      # wifi-menu
-
-      Esse comando vai possibilitar uma configuração com a internet através
-      do wifi. Quando configurar sua conexão, use o comando abaixo para pingar
-      e testar a conexão com a internet:
-
-      # ping -c3 archlinux.org
-
-      Se a resposta não for "ping: unknown host archlinux.org", sua conexão já está ativa.
-
-  C - Com a internet ativa, realize o download do
+  B - Com a internet ativa, realize o download do
       "Recover Grub". Para isso, execute o comando abaixo:
 
       # curl -L git.io/recover-grub -o recover-grub
@@ -49,7 +31,7 @@
       "Recuperar Grub" e escolher o dispositivo na máquina onde o Arch Linux está instalado.
 
       # chmod +x recover-grub
-      # recover-grub device
+      # ./recover-grub device
 
   E - Após escolher, o "Recover Grub" irá entrar na seção de chroot
       para você executar o comando de recuperação do Grub. O comando é:
