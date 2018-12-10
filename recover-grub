@@ -44,7 +44,7 @@ class RecoverGrub():
                 except Exception as e:
                     print('There was an error installing the dependencies.', e)
                     exit(1)
-        return print('All dependencies have been resolved and installed.')
+        # return print('All dependencies have been resolved and installed.')
 
     """ Verify version Python """
     def python_version_required(self, p_version: int):
@@ -67,7 +67,7 @@ class RecoverGrub():
         except Exception as err:
             print('Err! Erro na passagem de argumentos.', err)
 
-    """ Get Device SD/HD """
+    """ Get device SD/HD/VD """
     def get_device(self):
         import pyudev
         context = pyudev.Context()
@@ -77,7 +77,32 @@ class RecoverGrub():
                 # dev_type = device.device_type
         return dev_node
 
-    """ Check OS"""
+    """ Select device SD/HD/VD """
+    def select_device(self):
+        # import random
+        list_devices = [self.get_device()]
+        # list_devices = ['/dev/sda', '/dev/sdb']
+        # pick = random.randrange(len(list_devices))
+        # suit = list_devices[pick]
+
+        print('Select the device in which the Grub will be recovered.')
+
+        for index, item in enumerate(list_devices, start=1):
+            print(f'{index}:{item}')
+        print('')
+
+        choice = input('Please enter your choice:')
+        choice = int(choice) - 1
+        choice_device = list_devices[choice]
+        return print(choice_device)
+
+        # """Option manual"""
+        # count = 0
+        # for suit in list_devices:
+        #     print(" " + str(count) + " -> " + suit)
+        #     count += 1
+
+    """ Check OS """
     def check_system(self):
         if self.config['system'].lower() == 'os':
             from sys import platform
@@ -94,14 +119,74 @@ class RecoverGrub():
             raise Exception('Error check system.')
         return check_sys
 
-    """ Main """
-    def main(self):
+    """ Select partitions """
+    def select_type_partition(self):
+        print('Select the partition type that the system is installed on:')
+        opt = True
+        while opt:
+            choice = input(f"""
+    1: Ext3/Ext4
+    2: {self.config['crypto_type']}
+    3: Quit
+
+    Please enter your choice: """)
+
+            try:
+                if choice == "1":
+                    opt = False
+                    type_partition = 'ext'
+                elif choice == "2":
+                    opt = False
+                    type_partition = self.config['crypto_type']
+                elif choice == "3":
+                    opt = False
+                    return print('Aborted by user.')
+                else:
+                    print('Option invalid!')
+                    opt = True
+            except Exception as e:
+                return print('Error!.', e)
+            except KeyboardInterrupt as ki:
+                return print('Interrupt by user.', ki)
+
+        return type_partition
+
+    """ Sudo prompt """
+    def prompt_sudo(self):
+        import os
+        import subprocess
+        uid = 0
+        if os.geteuid() != 0:
+            msg = "[sudo] password for %u:"
+            uid = subprocess.check_call("sudo -v -p '%s'" % msg, shell=True)
+        return uid
+
+    """ Blkid """
+    def blkid(self):
+        import os
+        import subprocess
+        uid = 0
+        if os.geteuid() != 0:
+            msg = "[sudo] password for %u:"
+            uid = subprocess.check_call("sudo blkid | grep ext | awk \
+            '{print $1}' | cut -d\":\" -f1 '%s'" % msg, shell=True)
+        return print(uid)
+
+    """ Requeriments """
+    def requeriments(self):
         """ Requeriments """
         self.python_version_required(self.config['python_version'])
         self.modules_external(self.config['modules'])
         self.check_system()
+
+    """ Main """
+    def main(self):
+        self.requeriments()
         """ Start """
-        self.menu_args()
+        args = self.menu_args()
+        if args.command == 'device':
+            # self.select_type_partition()
+            self.select_device()
 
 
 if __name__ == '__main__':
