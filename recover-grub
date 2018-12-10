@@ -25,13 +25,13 @@ class RecoverGrub():
               'modules': ['pyudev', 'psutil'],
               'system': 'OS',
               'appversion': '3.0',
-              'mount_dir': '/mnt',
+              'mount_dir': '/mnt/temp',
               'name_crypto_open': 'filesystem',
               'crypto_type': 'crypto_LUKS'
               }
 
     """ Modules External """
-    def modules_external(self, all_packages: list):
+    def modules_external(self, all_packages):
         from importlib import util
         for item in all_packages:
             spec = util.find_spec(item)
@@ -47,7 +47,7 @@ class RecoverGrub():
         # return print('All dependencies have been resolved and installed.')
 
     """ Verify version Python """
-    def python_version_required(self, p_version: int):
+    def python_version_required(self, p_version):
         import sys
         if sys.version_info[0] < p_version:
             raise Exception('Must be using Python {0}'.format(p_version))
@@ -106,8 +106,8 @@ class RecoverGrub():
         return choice_device
 
     """ Check OS """
-    def check_system(self):
-        if self.config['system'].lower() == 'os':
+    def check_system(self, p_type):
+        if p_type.lower() == 'os':
             from sys import platform
             if platform == "linux" or platform == "linux2":
                 check_sys = 'linux'
@@ -115,7 +115,7 @@ class RecoverGrub():
                 check_sys = 'osx'
             elif platform == "win32":
                 check_sys = 'windows'
-        elif self.config['system'].lower() == 'distro':
+        elif p_type.lower() == 'distro':
             import platform
             check_sys = str(platform.dist()[0])
         else:
@@ -155,27 +155,66 @@ Please enter your choice (1-3): """)
         return type_partition
 
     """ Mount partition """
-    def mount_partition(self, pselect):
+    def mount_partition(self, device_type):
         from os.path import isfile
         from subprocess import check_output, STDOUT
-        shell_command = '''sudo blkid | grep ''' + pselect + '''| awk '{print $1}' |
-                        cut -d":" -f1'''
-        output = check_output(shell_command, shell=True, stderr=STDOUT,
-                              universal_newlines=True).splitlines()
 
-        if pselect == 'ext':
-            for partition in output:
-                print(f'mount {partition} {self.config["mount_dir"]}')
-                if isfile('/etc/os-release'):
-                    print(f'mount --bind /dev {self.config["mount_dir"]}/dev')
-                    print(f'mount --bind /dev/pts \
-                          {self.config["mount_dir"]}/dev/pts')
-                    print(f'mount --bind /proc \
-                          {self.config["mount_dir"]}/proc')
-                    print(f'mount --bind /sys {self.config["mount_dir"]}/sys')
+        try:
+            shell_command = '''sudo blkid | grep ''' + device_type + '''| awk '{print $1}' |
+                        cut -d":" -f1'''
+            devices_output = check_output(shell_command, shell=True, stderr=STDOUT,
+                                          universal_newlines=True).splitlines()
+        except Exception:
+            return None
+
+        if device_type == 'ext':
+            for partition in devices_output:
+                # print(f'mount {partition} {self.config["mount_dir"]}')
+                check_output('sudo mount ' + partition + ' ' + self.config["mount_dir"], shell=True)
+                if isfile(self.config["mount_dir"] + '/etc/os-release'):
+                    distro_mounted = check_output('sudo cat ' + self.config["mount_dir"] + '/etc/os-release | \
+                                                  grep ^NAME | cut -d"=" -f2 | cut -d"\\"" -f2', shell=True,
+                                                  stderr=STDOUT, universal_newlines=True)
+                    # distro_current = self.check_system('distro')
+                    print('Distro mountend:', distro_mounted)
+                    # print('Distro current', distro_current)
+
+                    if distro_mounted != 'Ubuntu':
+                        print('diferente')
+                        check_output('sudo umount ' + self.config["mount_dir"], shell=True, stderr=STDOUT,
+                                     universal_newlines=True)
+                        # continue
+                    elif distro_mounted == 'Ubuntu':
+                        print('igual')
+                        break
+                    else:
+                        print('jesussss')
+
+                    # check_output('sudo umount ' + self.config["mount_dir"], shell=True)
+                    # if distro_mounted == distro_current:
+                    #     print('igual')
+                    #     break
+                    # else:
+                    #     check_output('sudo umount ' + self.config["mount_dir"], shell=True)
+
+                    # if distro_mounted == distro_current:
+                    #     check_output('sudo mount --bind /dev ' + self.config["mount_dir"] + '/dev')
+                    #     print(f'mount --bind /dev {self.config["mount_dir"]}/dev')
+                    #     print(f'mount --bind /dev/pts \
+                    #           {self.config["mount_dir"]}/dev/pts')
+                    #     print(f'mount --bind /proc \
+                    #           {self.config["mount_dir"]}/proc')
+                    #     print(f'mount --bind /sys {self.config["mount_dir"]}/sys')
+                    #     break
+                    # else:
+                    #     print('diferente')
+                    #     check_output('sudo umount -R ' + self.config["mount_dir"], shell=True)
+                    #     # continue
                 else:
-                    print(f'umount {self.config["mount_dir"]}')
-        elif pselect == 'crypto_LUKS':
+                    check_output('sudo umount ' + self.config["mount_dir"], shell=True)
+                    # print(f'umount -R {self.config["mount_dir"]}')
+                    # continue
+        elif device_type == 'crypto_LUKS':
             print('partition luks')
 
     """ Sudo prompt """
@@ -204,7 +243,7 @@ Please enter your choice (1-3): """)
         """ Requeriments """
         self.python_version_required(self.config['python_version'])
         self.modules_external(self.config['modules'])
-        self.check_system()
+        self.check_system('os')
 
     """ Main """
     def main(self):
