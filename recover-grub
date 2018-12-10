@@ -19,7 +19,16 @@
 class RecoverGrub():
 
     """ Config """
-    config = {'python_version': 3, 'modules': ['pyudev'], 'system': 'OS'}
+    config = {'appname': 'Recover Grub',
+              'appscript': 'recover-grub',
+              'python_version': 3,
+              'modules': ['pyudev'],
+              'system': 'OS',
+              'appversion': '3.0',
+              'mount_dir': '/mnt',
+              'name_crypto_open': 'filesystem',
+              'crypto_type': 'crypto_LUKS'
+              }
 
     """ Modules External """
     def modules_external(self, all_packages: list):
@@ -42,6 +51,21 @@ class RecoverGrub():
         import sys
         if sys.version_info[0] < p_version:
             raise Exception('Must be using Python {0}'.format(p_version))
+
+    """ Menu """
+    def menu_args(self):
+        from argparse import ArgumentParser
+        try:
+            parser = ArgumentParser(prog='prog',
+                                    usage='usage',
+                                    description='desc')
+            parser.add_argument('command', action='store',
+                                type=str, default='download')
+            args = parser.parse_args()
+            return args
+
+        except Exception as err:
+            print('Err! Erro na passagem de argumentos.', err)
 
     """ Get Device SD/HD """
     def get_device(self):
@@ -72,10 +96,12 @@ class RecoverGrub():
 
     """ Main """
     def main(self):
+        """ Requeriments """
         self.python_version_required(self.config['python_version'])
         self.modules_external(self.config['modules'])
-        self.get_device()
         self.check_system()
+        """ Start """
+        self.menu_args()
 
 
 if __name__ == '__main__':
