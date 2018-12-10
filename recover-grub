@@ -3,7 +3,7 @@
 # Information:
 #
 # ******************************************************************************
-# Type: Shell Script
+# Type: Python
 # Description: Mount partition Linux and Recover the Grub on Linux
 # Script Name: Recover Grub
 # Project URL: https://github.com/williamcanin/recover-grub.git
@@ -22,7 +22,7 @@ class RecoverGrub():
     config = {'appname': 'Recover Grub',
               'appscript': 'recover-grub',
               'python_version': 3,
-              'modules': ['pyudev'],
+              'modules': ['pyudev', 'psutil'],
               'system': 'OS',
               'appversion': '3.0',
               'mount_dir': '/mnt',
@@ -79,14 +79,9 @@ class RecoverGrub():
 
     """ Select device SD/HD/VD """
     def select_device(self):
-        # import random
-        # list_devices = [self.get_device()]
-        list_devices = ['/dev/sda', '/dev/sdb']
-        # pick = random.randrange(len(list_devices))
-        # suit = list_devices[pick]
-
+        # list_devices = ['/dev/sda', '/dev/sdb'] # line test
+        list_devices = [self.get_device()]
         print('\nSelect the device in which the Grub will be recovered.')
-
         opt = True
         while opt:
             print()
@@ -133,11 +128,11 @@ class RecoverGrub():
         opt = True
         while opt:
             choice = input(f"""
-    1: Ext3/Ext4
-    2: {self.config['crypto_type']}
-    3: Quit
+1: Ext3/Ext4
+2: {self.config['crypto_type'].title().replace('_', ' (')})
+3: Quit
 
-    Please enter your choice: """)
+Please enter your choice (1-3): """)
 
             try:
                 if choice == "1":
@@ -158,6 +153,30 @@ class RecoverGrub():
                 return print('Interrupt by user.', ki)
 
         return type_partition
+
+    """ Mount partition """
+    def mount_partition(self, pselect):
+        from os.path import isfile
+        from subprocess import check_output, STDOUT
+        shell_command = '''sudo blkid | grep ''' + pselect + '''| awk '{print $1}' |
+                        cut -d":" -f1'''
+        output = check_output(shell_command, shell=True, stderr=STDOUT,
+                              universal_newlines=True).splitlines()
+
+        if pselect == 'ext':
+            for partition in output:
+                print(f'mount {partition} {self.config["mount_dir"]}')
+                if isfile('/etc/os-release'):
+                    print(f'mount --bind /dev {self.config["mount_dir"]}/dev')
+                    print(f'mount --bind /dev/pts \
+                          {self.config["mount_dir"]}/dev/pts')
+                    print(f'mount --bind /proc \
+                          {self.config["mount_dir"]}/proc')
+                    print(f'mount --bind /sys {self.config["mount_dir"]}/sys')
+                else:
+                    print(f'umount {self.config["mount_dir"]}')
+        elif pselect == 'crypto_LUKS':
+            print('partition luks')
 
     """ Sudo prompt """
     def prompt_sudo(self):
@@ -194,7 +213,8 @@ class RecoverGrub():
         args = self.menu_args()
         if args.command == 'device':
             # self.select_type_partition()
-            self.select_device()
+            # self.select_device()
+            self.mount_partition(self.select_type_partition())
 
 
 if __name__ == '__main__':
