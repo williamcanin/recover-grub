@@ -80,27 +80,35 @@ class RecoverGrub():
     """ Select device SD/HD/VD """
     def select_device(self):
         # import random
-        list_devices = [self.get_device()]
-        # list_devices = ['/dev/sda', '/dev/sdb']
+        # list_devices = [self.get_device()]
+        list_devices = ['/dev/sda', '/dev/sdb']
         # pick = random.randrange(len(list_devices))
         # suit = list_devices[pick]
 
-        print('Select the device in which the Grub will be recovered.')
+        print('\nSelect the device in which the Grub will be recovered.')
 
-        for index, item in enumerate(list_devices, start=1):
-            print(f'{index}:{item}')
-        print('')
+        opt = True
+        while opt:
+            print()
+            for index, item in enumerate(list_devices, start=1):
+                print(f'{index}: {item}')
+            print(f'{index + 1}: Quit')
 
-        choice = input('Please enter your choice:')
-        choice = int(choice) - 1
-        choice_device = list_devices[choice]
-        return print(choice_device)
+            choice = input(f'\nPlease enter your choice (1-{index + 1}): ')
+            choice = int(choice)
+            if choice == int(index + 1):
+                print('Aborted by user')
+                opt = False
+                exit(0)
+            elif choice >= int(index + 1):
+                print('Option invalid')
+                opt = True
+            else:
+                opt = False
+                choice = int(choice) - 1
+                choice_device = list_devices[choice]
 
-        # """Option manual"""
-        # count = 0
-        # for suit in list_devices:
-        #     print(" " + str(count) + " -> " + suit)
-        #     count += 1
+        return choice_device
 
     """ Check OS """
     def check_system(self):
