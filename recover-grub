@@ -17,11 +17,33 @@
 
 
 class UI:
-    def colors(self):
-        pass
+    def __init__(self):
+        self._header = '\033[36mⓘ  '
+        self._warning = '\033[93m⚠  '
+        self._reply = '\033[95m→ '
+        self._okgreen = '\033[92m✔ '
+        self._error = '\033[91m✖ '
+        self._end = '\033[0m'
+        print(f"""
+\033[36mWelcome to\033[0m
+ ____                               ____            _
+|  _ \ ___  ___ _____   _____ _ __ / ___|_ __ _   _| |__
+| |_) / _ \/ __/ _ \ \ / / _ \ '__| |  _| '__| | | | '_ \\
+|  _ <  __/ (_| (_) \ V /  __/ |  | |_| | |  | |_| | |_) |
+|_| \_\___|\___\___/ \_/ \___|_|   \____|_|   \__,_|_.__/
+                                              since 2018 ©
+        """)
+
+    def printColor(self, type, color, message):
+        if type == 'print':
+            return print(f'{color}{message}' + self._end)
+        elif type == 'input':
+            return input(f'{color}{message}' + self._end)
+        else:
+            print('error')
 
 
-class Engine():
+class Engine(UI):
 
     """
         Here are some global script variables.
@@ -48,9 +70,11 @@ class Engine():
                 try:
                     import subprocess
                     import sys
-                    print(f"""Installing dependencies for {self.config['appname']}""")
+                    self.printColor('print', self._header, 'Installing dependencies for ' +
+                                    self.config['appname'] + '.' * 3)
                     subprocess.call([sys.executable, "-m", "pip", "install", "--user", item])
-                    print(f"""{self.config['appname']} dependencies installed!\n""")
+                    self.printColor('print', self._okgreen, self.config['appname'] +
+                                    ' dependencies installed!\n')
                 except Exception as e:
                     print('There was an error installing the dependencies.', e)
                     exit(1)
@@ -62,7 +86,7 @@ class Engine():
     def python_version_required(self, p_version):
         import sys
         if sys.version_info[0] < p_version:
-            raise Exception('Must be using Python {0}'.format(p_version))
+            raise Exception('Must be using Python {}'.format(p_version))
 
     """
         This function will return the parameters passed in the execution of the script.
@@ -100,22 +124,24 @@ class Engine():
     def select_device(self):
         # list_devices = ['/dev/sda', '/dev/sdb'] # line test
         list_devices = [self.get_device()]
-        print('\nSelect the device in which the Grub will be recovered.')
+        self.printColor('print', self._header, 'Select the device in which the Grub will be recovered')
         opt = True
         while opt:
             print()
             for index, item in enumerate(list_devices, start=1):
                 print(f'{index}: {item}')
-            print(f'{index + 1}: Quit')
+            print(f'{index + 1}: Quit\n')
 
-            choice = input(f'\nPlease enter your choice (1-{index + 1}): ')
+            # choice = input(f'\nPlease enter your choice (1-{index + 1}): ')
+            choice = self.printColor('input', self._reply, 'Please enter your choice (1-' +
+                                     str(index + 1) + '):')
             choice = int(choice)
             if choice == int(index + 1):
-                print('Aborted by user')
+                self.printColor('print', self._warning, 'Aborted by user')
                 opt = False
                 exit(0)
             elif choice >= int(index + 1):
-                print('Option invalid')
+                self.printColor('print', self._error, 'Option invalid')
                 opt = True
             else:
                 opt = False
@@ -147,7 +173,8 @@ class Engine():
 
     """ Select partitions """
     def select_type_partition(self):
-        print('Select the partition type that the system is installed on:')
+        # print('Select the partition type that the system is installed on:')
+        self.printColor('print', self._header, 'Select the partition type that the system is installed on:')
         opt = True
         while opt:
             choice = input(f"""
@@ -166,7 +193,7 @@ Please enter your choice (1-3): """)
                     type_partition = self.config['crypto_type']
                 elif choice == "3":
                     opt = False
-                    return print('Aborted by user.')
+                    return self.printColor('print', self._warning, 'Aborted by user.')
                 else:
                     print('Option invalid!')
                     opt = True
@@ -177,6 +204,9 @@ Please enter your choice (1-3): """)
 
         return type_partition
 
+    def open_os_release():
+        pass
+
     """
         Function to mount the partition to be recovered by Grub.
     """
@@ -186,8 +216,7 @@ Please enter your choice (1-3): """)
         from subprocess import check_output, STDOUT
 
         try:
-            shell_command = '''sudo blkid | grep ''' + device_type + '''| awk '{print $1}' |
-                        cut -d":" -f1'''
+            shell_command = '''sudo blkid | grep ''' + device_type + '''| awk '{print $1}' | cut -d":" -f1'''
             devices_output = check_output(shell_command, shell=True, stderr=STDOUT,
                                           universal_newlines=True).splitlines()
         except Exception:
@@ -257,7 +286,8 @@ Please enter your choice (1-3): """)
         """ Start """
         args = self.menu_args()
         if args.command == 'device':
-            self.mount_partition(self.select_type_partition())
+            # self.mount_partition(self.select_type_partition())
+            self.select_device()
 
 
 if __name__ == '__main__':
