@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Information:
-#
+
 # ******************************************************************************
 # Type: Python
 # Description: Mount partition Linux and Recover the Grub on Linux
@@ -9,11 +9,22 @@
 # Project URL: https://github.com/williamcanin/recover-grub.git
 # URL Script: http://git.io/recover-grub
 
+# Tools used:
+#   Atom Editor:
+#       - wrap-guide (Preferred Line Lenght: 115)
+#       - atom-beautify
+#       - autocomplete-python
+#       - MagicPython
+#       - linter
+#       - linter-flake8 (Max Line Length: 115)
+
 # Author: William C. Canin
 #   Contacts:
 #   E-Mail: william.costa.canin@gmail.com
 #   WebSite: https://williamcanin.github.io
 #   GitHub: https://github.com/williamcanin
+
+# ******************************************************************************
 
 
 class UI:
