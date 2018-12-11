@@ -24,6 +24,9 @@ class UI:
         self._okgreen = '\033[92m✔ '
         self._error = '\033[91m✖ '
         self._end = '\033[0m'
+
+        # Design text using figlet. Install: $ sudo apt install figlet
+        # Usage: $ figlet <Text>
         print(f"""
 \033[36mWelcome to\033[0m
 \033[93m ____                               ____            _
@@ -227,9 +230,10 @@ class Engine(UI):
             for partition in devices_output:
                 sh.sudo.mount(partition, self.config["mount_dir"], _fg=True)
                 if isfile(self.config["mount_dir"] + '/etc/os-release'):
-                    distro_mounted = check_output('sudo cat ' + self.config["mount_dir"] + '/etc/os-release | \
-                                                  grep ^NAME | cut -d"=" -f2 | cut -d"\\"" -f2', shell=True,
-                                                  stderr=STDOUT, universal_newlines=True).split()[0]
+
+                    content_os_release = sh.cat(self.config["mount_dir"] + '/etc/os-release')
+                    dict_os_release = dict([i.split('=') for i in content_os_release.strip().split('\n')])
+                    distro_mounted = dict_os_release['NAME'].replace('"', '')
 
                     if distro_mounted == self.get_system('distro'):
                         try:
