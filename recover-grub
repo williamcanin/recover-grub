@@ -228,29 +228,35 @@ class Engine(UI):
 
         if device_type == 'ext':
             for partition in devices_output:
-                sh.sudo.mount(partition, self.config["mount_dir"], _fg=True)
                 if isfile(self.config["mount_dir"] + '/etc/os-release'):
-
-                    content_os_release = sh.cat(self.config["mount_dir"] + '/etc/os-release')
-                    dict_os_release = dict([i.split('=') for i in content_os_release.strip().split('\n')])
-                    distro_mounted = dict_os_release['NAME'].replace('"', '')
-
-                    if distro_mounted == self.get_system('distro'):
-                        try:
-                            sh.sudo.mount("--bind", "/dev", self.config['mount_dir'] + "/dev", _fg=True)
-                            sh.sudo.mount("--bind", "/dev/pts", self.config['mount_dir'] + "/dev/pts",
-                                          _fg=True)
-                            sh.sudo.mount("--bind", "/proc", self.config['mount_dir'] + "/proc", _fg=True)
-                            sh.sudo.mount("--bind", "/sys", self.config['mount_dir'] + "/sys", _fg=True)
-                        except Exception as e:
-                            print('Error in performing assemblies.', e)
-                            sh.sudo.umount("-R", self.config['mount_dir'], _fg=True)
-                        break
-                    elif distro_mounted != self.get_system('distro'):
-                        sh.sudo.umount(self.config['mount_dir'], _fg=True)
-                        continue
+                    self.printColor('print', self._warning, 'A mounted partition already exists in ' +
+                                    self.config["mount_dir"] + '. Use the "umount ' +
+                                    self.config["mount_dir"] + '" command to unmount, and re-run the ' +
+                                    self.config["appname"] + '.')
+                    break
                 else:
-                    sh.sudo.umount(self.config['mount_dir'], _fg=True)
+                    sh.sudo.mount(partition, self.config["mount_dir"], _fg=True)
+                    if isfile(self.config["mount_dir"] + '/etc/os-release'):
+                        content_os_release = sh.cat(self.config["mount_dir"] + '/etc/os-release')
+                        dict_os_release = dict([i.split('=') for i in content_os_release.strip().split('\n')])
+                        distro_mounted = dict_os_release['NAME'].replace('"', '')
+
+                        if distro_mounted == self.get_system('distro'):
+                            try:
+                                sh.sudo.mount("--bind", "/dev", self.config['mount_dir'] + "/dev", _fg=True)
+                                sh.sudo.mount("--bind", "/dev/pts", self.config['mount_dir'] + "/dev/pts",
+                                              _fg=True)
+                                sh.sudo.mount("--bind", "/proc", self.config['mount_dir'] + "/proc", _fg=True)
+                                sh.sudo.mount("--bind", "/sys", self.config['mount_dir'] + "/sys", _fg=True)
+                            except Exception as e:
+                                print('Error in performing assemblies.', e)
+                                sh.sudo.umount("-R", self.config['mount_dir'], _fg=True)
+                            break
+                        elif distro_mounted != self.get_system('distro'):
+                            sh.sudo.umount(self.config['mount_dir'], _fg=True)
+                            continue
+                    else:
+                        sh.sudo.umount(self.config['mount_dir'], _fg=True)
 
         elif device_type == self.config['crypto_type']:
             print('partition luks')
@@ -292,7 +298,7 @@ class Engine(UI):
         args = self.menu_args()
         if args.command == 'device':
             self.mount_partition(self.select_type_partition())
-            self.select_device()
+            # self.select_device()
 
 
 if __name__ == '__main__':
