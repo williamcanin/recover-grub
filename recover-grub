@@ -27,7 +27,7 @@
 # ******************************************************************************
 
 
-class UI:
+class RecoverGrub_UI:
     def __init__(self):
         self._header = '\033[36mⓘ  '
         self._warning = '\033[93m⚠  '
@@ -48,20 +48,23 @@ class UI:
                                        since 2018 © v{self.config['appversion']}
         """)
 
-    def printColor(self, type, color, message) -> str:
+    def printColor(self, type, color, message, options='') -> str:
         if type == 'print':
             return print(f'{color}{message}' + self._end)
         elif type == 'input':
             return input(f'{color}{message}' + self._end)
+        elif type == 'except':
+            return print(f'\n{color}{message}' + self._end, options)
         else:
             raise print('Error in first argument in "PrintColor"')
 
 
-class RecoverGrub:
-    pass
+class RecoverGrub_Start:
+    def __init__(self):
+        print('Ok.')
 
 
-class Engine(UI, RecoverGrub):
+class RecoverGrub_Engine(RecoverGrub_UI):
 
     """
         Here are some global script variables.
@@ -93,8 +96,9 @@ class Engine(UI, RecoverGrub):
                     subprocess.call([sys.executable, "-m", "pip", "install", "--user", item])
                     self.printColor('print', self._okgreen, self.config['appname'] +
                                     ' dependencies installed!\n')
-                except Exception as e:
-                    print('There was an error installing the dependencies.', e)
+                except Exception as err:
+                    self.printColor('except', self._warning, 'There was an error installing the dependencies.',
+                                    err)
                     exit(1)
         # return self.printColor('print', self._okgreen, 'All dependencies have been resolved and installed.\n')
 
@@ -103,8 +107,12 @@ class Engine(UI, RecoverGrub):
     """
     def python_version_required(self, p_version: int):
         import sys
-        if sys.version_info[0] < p_version:
-            raise Exception('Must be using Python {}'.format(p_version))
+        try:
+            if sys.version_info[0] < p_version:
+                raise Exception('Must be using Python {}'.format(p_version))
+        except Exception as err:
+            print('Error!', err)
+            exit(1)
 
     """
         This function will return the parameters passed in the execution of the script.
@@ -121,7 +129,7 @@ class Engine(UI, RecoverGrub):
             return args
 
         except Exception as err:
-            print('Err! Erro na passagem de argumentos.', err)
+            return self.printColor('except', self._warning, 'Error in passing arguments..', err)
 
     """
         A function that returns a list of SD / HS / SSD devices on the machine.
@@ -154,33 +162,39 @@ class Engine(UI, RecoverGrub):
         list_devices = [self.get_device()]
         self.printColor('print', self._header, 'Select the device in which the Grub will be recovered')
 
-        while True:
-            print()
-            for index, item in enumerate(list_devices, start=1):
-                print(f'{index}: {item}')
-            index_quit = index + 1
-            print(f'{index_quit}: Quit\n')
+        try:
+            while True:
+                print()
+                for index, item in enumerate(list_devices, start=1):
+                    print(f'{index}: {item}')
+                index_quit = index + 1
+                print(f'{index_quit}: Quit\n')
 
-            choice = self.printColor('input', self._reply, 'Please enter your choice (1-' +
-                                     str(index + 1) + '): ')
-            choice_device = None
-            # You could use the 'isdigit'.
-            # E.g: if not choice.isdigit():
-            if not self.isnumber(choice):
-                self.printColor('print', self._error, 'Enter numbers only')
-                continue
-            elif int(choice) == index_quit:
-                self.printColor('print', self._warning, 'Aborted by user')
-                break
-            elif int(choice) > (index_quit):
-                self.printColor('print', self._error, 'Option invalid')
-                continue
-            else:
-                choice = int(choice) - 1
-                choice_device = list_devices[int(choice)]
-                break
-
-        return choice_device
+                choice = self.printColor('input', self._reply, 'Please enter your choice (1-' +
+                                         str(index + 1) + '): ')
+                # You could use the 'isdigit'.
+                # E.g: if not choice.isdigit():
+                if not self.isnumber(choice):
+                    self.printColor('print', self._error, 'Enter numbers only')
+                    choice_device = None
+                    continue
+                elif int(choice) == index_quit:
+                    self.printColor('print', self._warning, 'Aborted by user')
+                    choice_device = None
+                    break
+                elif int(choice) > (index_quit):
+                    self.printColor('print', self._error, 'Option invalid')
+                    choice_device = None
+                    continue
+                else:
+                    choice = (int(choice) - 1)
+                    choice_device = list_devices[int(choice)]
+                    return choice_device
+                    break
+        except Exception as err:
+                return self.printColor('except', self._warning, 'There was some error making the choice.', err)
+        except KeyboardInterrupt as ki:
+                return self.printColor('except', self._warning, 'Interrupt by user using Ctrl+C.', ki)
 
     """
         A function gets an argument to return what type of system the machine is using. If the argument is
@@ -205,17 +219,17 @@ class Engine(UI, RecoverGrub):
         return check_sys
 
     """ Select partitions """
-    def select_type_partition(self):
+    def select_type_partition(self) -> str:
         self.printColor('print', self._header, 'Select the partition type that the system is installed on:')
         while True:
-            choice = input(f"""
+            try:
+                choice = input(f"""
 1: Ext3/Ext4
 2: {self.config['crypto_type'].title().replace('_', ' (')})
 3: Quit
 
 \033[95m→ Please enter your choice (1-3): \033[0m""")
 
-            try:
                 if choice == "1":
                     type_partition = 'ext'
                     break
@@ -228,10 +242,10 @@ class Engine(UI, RecoverGrub):
                 else:
                     self.printColor('print', self._error, 'Option invalid!')
                     continue
-            except Exception as e:
-                return print('Error!.', e)
+            except Exception as err:
+                return self.printColor('except', self._warning, 'Something unexpected happened :(', err)
             except KeyboardInterrupt as ki:
-                return print('Interrupt by user.', ki)
+                return self.printColor('except', self._warning, 'Interrupt by user using Ctrl+C.', ki)
 
         return type_partition
 
@@ -282,8 +296,8 @@ class Engine(UI, RecoverGrub):
                                 sh.sudo.chroot(self.config['mount_dir'], "/bin/bash", _fg=True)
                                 # Exit chroot.
                                 sh.sudo.umount("-R", self.config['mount_dir'], _fg=True)
-                            except Exception as e:
-                                print('Error in performing assemblies.', e)
+                            except Exception as err:
+                                self.printColor('except', self._warning, 'Error in performing assemblies.', err)
                                 sh.sudo.umount("-R", self.config['mount_dir'], _fg=True)
                             break
                         elif distro_name != self.get_system('distro'):
@@ -316,5 +330,5 @@ class Engine(UI, RecoverGrub):
 
 
 if __name__ == '__main__':
-    recover_grub = Engine()
+    recover_grub = RecoverGrub_Engine()
     recover_grub.main()
