@@ -1,0 +1,1 @@
+[x] Resolver erro do menu 'select_device'

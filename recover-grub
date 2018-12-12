@@ -3,7 +3,7 @@
 # Information:
 
 # ******************************************************************************
-# Type: Python
+# Type: Python 3
 # Description: Mount partition Linux and Recover the Grub on Linux
 # Script Name: Recover Grub
 # Project URL: https://github.com/williamcanin/recover-grub.git
@@ -45,19 +45,23 @@ class UI:
 | |_) / _ \/ __/ _ \ \ / / _ \ '__| |  _| '__| | | | '_ \\
 |  _ <  __/ (_| (_) \ V /  __/ |  | |_| | |  | |_| | |_) |
 |_| \_\___|\___\___/ \_/ \___|_|   \____|_|   \__,_|_.__/\033[0m
-                                              since 2018 ©
+                                       since 2018 © v{self.config['appversion']}
         """)
 
-    def printColor(self, type, color, message):
+    def printColor(self, type, color, message) -> str:
         if type == 'print':
             return print(f'{color}{message}' + self._end)
         elif type == 'input':
             return input(f'{color}{message}' + self._end)
         else:
-            print('error')
+            raise print('Error in first argument in "PrintColor"')
 
 
-class Engine(UI):
+class RecoverGrub:
+    pass
+
+
+class Engine(UI, RecoverGrub):
 
     """
         Here are some global script variables.
@@ -92,12 +96,12 @@ class Engine(UI):
                 except Exception as e:
                     print('There was an error installing the dependencies.', e)
                     exit(1)
-        # return print('All dependencies have been resolved and installed.')
+        # return self.printColor('print', self._okgreen, 'All dependencies have been resolved and installed.\n')
 
     """
         Function to check the version of Python that this script uses.
     """
-    def python_version_required(self, p_version):
+    def python_version_required(self, p_version: int):
         import sys
         if sys.version_info[0] < p_version:
             raise Exception('Must be using Python {}'.format(p_version))
@@ -105,7 +109,7 @@ class Engine(UI):
     """
         This function will return the parameters passed in the execution of the script.
     """
-    def menu_args(self):
+    def menu_args(self) -> str:
         from argparse import ArgumentParser
         try:
             parser = ArgumentParser(prog='prog',
@@ -122,7 +126,7 @@ class Engine(UI):
     """
         A function that returns a list of SD / HS / SSD devices on the machine.
     """
-    def get_device(self):
+    def get_device(self) -> str:
         import pyudev
         context = pyudev.Context()
         for device in context.list_devices(MAJOR='8'):
@@ -132,35 +136,49 @@ class Engine(UI):
         return dev_node
 
     """
+        Function to verify that what was typed in the input is number.
+    """
+    def isnumber(self, value):
+        try:
+            int(value)
+        except ValueError:
+            return False
+        return True
+
+    """
         A function that converses with the user to make the selection of the devices of the machine, for
         the assembly.
     """
-    def select_device(self):
-        # list_devices = ['/dev/sda', '/dev/sdb'] # line test
+    def select_device(self) -> str:
+        # list_devices = ['/dev/sda', '/dev/sdb', '/dev/sdc', '/dev/sdd']  # line test
         list_devices = [self.get_device()]
         self.printColor('print', self._header, 'Select the device in which the Grub will be recovered')
-        opt = True
-        while opt:
+
+        while True:
             print()
             for index, item in enumerate(list_devices, start=1):
                 print(f'{index}: {item}')
-            print(f'{index + 1}: Quit\n')
+            index_quit = index + 1
+            print(f'{index_quit}: Quit\n')
 
-            # choice = input(f'\nPlease enter your choice (1-{index + 1}): ')
             choice = self.printColor('input', self._reply, 'Please enter your choice (1-' +
-                                     str(index + 1) + '):')
-            choice = int(choice)
-            if choice == int(index + 1):
+                                     str(index + 1) + '): ')
+            choice_device = None
+            # You could use the 'isdigit'.
+            # E.g: if not choice.isdigit():
+            if not self.isnumber(choice):
+                self.printColor('print', self._error, 'Enter numbers only')
+                continue
+            elif int(choice) == index_quit:
                 self.printColor('print', self._warning, 'Aborted by user')
-                opt = False
-                exit(0)
-            elif choice >= int(index + 1):
+                break
+            elif int(choice) > (index_quit):
                 self.printColor('print', self._error, 'Option invalid')
-                opt = True
+                continue
             else:
-                opt = False
                 choice = int(choice) - 1
-                choice_device = list_devices[choice]
+                choice_device = list_devices[int(choice)]
+                break
 
         return choice_device
 
@@ -188,10 +206,8 @@ class Engine(UI):
 
     """ Select partitions """
     def select_type_partition(self):
-        # print('Select the partition type that the system is installed on:')
         self.printColor('print', self._header, 'Select the partition type that the system is installed on:')
-        opt = True
-        while opt:
+        while True:
             choice = input(f"""
 1: Ext3/Ext4
 2: {self.config['crypto_type'].title().replace('_', ' (')})
@@ -201,26 +217,23 @@ class Engine(UI):
 
             try:
                 if choice == "1":
-                    opt = False
                     type_partition = 'ext'
+                    break
                 elif choice == "2":
-                    opt = False
                     type_partition = self.config['crypto_type']
+                    break
                 elif choice == "3":
-                    opt = False
                     return self.printColor('print', self._warning, 'Aborted by user.')
+                    break
                 else:
                     self.printColor('print', self._error, 'Option invalid!')
-                    opt = True
+                    continue
             except Exception as e:
                 return print('Error!.', e)
             except KeyboardInterrupt as ki:
                 return print('Interrupt by user.', ki)
 
         return type_partition
-
-    def open_os_release():
-        pass
 
     """
         Function to mount the partition to be recovered by Grub.
@@ -241,7 +254,7 @@ class Engine(UI):
             for partition in devices_output:
                 if isfile(self.config["mount_dir"] + '/etc/os-release'):
                     self.printColor('print', self._warning, 'A mounted partition already exists in ' +
-                                    self.config["mount_dir"] + '. Use the "umount ' +
+                                    self.config["mount_dir"] + '. Use the "sudo umount ' +
                                     self.config["mount_dir"] + '" command to unmount, and re-run the ' +
                                     self.config["appname"] + '.')
                     break
@@ -250,20 +263,30 @@ class Engine(UI):
                     if isfile(self.config["mount_dir"] + '/etc/os-release'):
                         content_os_release = sh.cat(self.config["mount_dir"] + '/etc/os-release')
                         dict_os_release = dict([i.split('=') for i in content_os_release.strip().split('\n')])
-                        distro_mounted = dict_os_release['NAME'].replace('"', '')
+                        distro_name = dict_os_release['NAME'].replace('"', '')
+                        distro_pretty_name = dict_os_release['PRETTY_NAME'].replace('"', '')
 
-                        if distro_mounted == self.get_system('distro'):
+                        if distro_name == self.get_system('distro'):
                             try:
                                 sh.sudo.mount("--bind", "/dev", self.config['mount_dir'] + "/dev", _fg=True)
                                 sh.sudo.mount("--bind", "/dev/pts", self.config['mount_dir'] + "/dev/pts",
                                               _fg=True)
                                 sh.sudo.mount("--bind", "/proc", self.config['mount_dir'] + "/proc", _fg=True)
                                 sh.sudo.mount("--bind", "/sys", self.config['mount_dir'] + "/sys", _fg=True)
+                                self.printColor('print', self._okgreen, 'Partition containing "' +
+                                                distro_pretty_name + '" was found and mounted on "' +
+                                                self.config['mount_dir'] + '".')
+                                self.printColor('print', self._warning, 'You are now in the chroot. Run ' +
+                                                '\033[36m"recover-grub start"\033[93m to start Grub recovery.')
+                                # Enter in Chroot.
+                                sh.sudo.chroot(self.config['mount_dir'], "/bin/bash", _fg=True)
+                                # Exit chroot.
+                                sh.sudo.umount("-R", self.config['mount_dir'], _fg=True)
                             except Exception as e:
                                 print('Error in performing assemblies.', e)
                                 sh.sudo.umount("-R", self.config['mount_dir'], _fg=True)
                             break
-                        elif distro_mounted != self.get_system('distro'):
+                        elif distro_name != self.get_system('distro'):
                             sh.sudo.umount(self.config['mount_dir'], _fg=True)
                             continue
                     else:
@@ -271,26 +294,6 @@ class Engine(UI):
 
         elif device_type == self.config['crypto_type']:
             print('partition luks')
-
-    # """ Sudo prompt """
-    # def prompt_sudo(self):
-    #     import os
-    #     from subprocess import check_call
-    #     uid = 0
-    #     if os.geteuid() != 0:
-    #         msg = "[sudo] password for %u:"
-    #         uid = check_call("sudo -v -p '%s'" % msg, shell=True)
-    #     return uid
-    # """ Blkid """
-    # def blkid(self):
-    #     import os
-    #     from subprocess import check_call
-    #     uid = 0
-    #     if os.geteuid() != 0:
-    #         msg = "[sudo] password for %u:"
-    #         uid = check_call("sudo blkid | grep ext | awk \
-    #         '{print $1}' | cut -d\":\" -f1 '%s'" % msg, shell=True)
-    #     return print(uid)
 
     """
         Function to store the functions responsible for the script requirements.
@@ -308,8 +311,8 @@ class Engine(UI):
         """ Start """
         args = self.menu_args()
         if args.command == 'device':
-            self.mount_partition(self.select_type_partition())
-            # self.select_device()
+            # self.mount_partition(self.select_type_partition())
+            self.select_device()
 
 
 if __name__ == '__main__':
