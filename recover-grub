@@ -66,9 +66,6 @@ class RecoverGrub_Start:
 
 class RecoverGrub_Engine(RecoverGrub_UI):
 
-    """
-        Here are some global script variables.
-    """
     config = {'appname': 'Recover Grub',
               'appscript': 'recover-grub',
               'python_version': 3,
@@ -76,14 +73,14 @@ class RecoverGrub_Engine(RecoverGrub_UI):
               'system': 'OS',
               'appversion': '3.0',
               'mount_dir': '/mnt/temp',
-              'name_crypto_open': 'filesystem',
+              'name_crypto_open': 'filesystem2',
               'crypto_type': 'crypto_LUKS'
               }
 
-    """
-        This function has the purpose of installing dependencies to execute this script through pip.
-    """
     def modules_external(self, all_packages):
+        """
+            This function has the purpose of installing dependencies to execute this script through pip.
+        """
         from importlib import util
         for item in all_packages:
             spec = util.find_spec(item)
@@ -102,10 +99,10 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                     exit(1)
         # return self.printColor('print', self._okgreen, 'All dependencies have been resolved and installed.\n')
 
-    """
-        Function to check the version of Python that this script uses.
-    """
     def python_version_required(self, p_version: int):
+        """
+            Function to check the version of Python that this script uses.
+        """
         import sys
         try:
             if sys.version_info[0] < p_version:
@@ -114,10 +111,10 @@ class RecoverGrub_Engine(RecoverGrub_UI):
             print('Error!', err)
             exit(1)
 
-    """
-        This function will return the parameters passed in the execution of the script.
-    """
     def menu_args(self) -> str:
+        """
+            This function will return the parameters passed in the execution of the script.
+        """
         from argparse import ArgumentParser
         try:
             parser = ArgumentParser(prog='prog',
@@ -131,10 +128,10 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         except Exception as err:
             return self.printColor('except', self._warning, 'Error in passing arguments..', err)
 
-    """
-        A function that returns a list of SD / HS / SSD devices on the machine.
-    """
     def get_device(self) -> str:
+        """
+            A function that returns a list of SD / HS / SSD devices on the machine.
+        """
         import pyudev
         context = pyudev.Context()
         for device in context.list_devices(MAJOR='8'):
@@ -143,21 +140,11 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                 # dev_type = device.device_type
         return dev_node
 
-    """
-        Function to verify that what was typed in the input is number.
-    """
-    def isnumber(self, value):
-        try:
-            int(value)
-        except ValueError:
-            return False
-        return True
-
-    """
-        A function that converses with the user to make the selection of the devices of the machine, for
-        the assembly.
-    """
     def select_device(self) -> str:
+        """
+            A function that converses with the user to make the selection of the devices of the machine, for
+            the assembly.
+        """
         # list_devices = ['/dev/sda', '/dev/sdb', '/dev/sdc', '/dev/sdd']  # line test
         list_devices = [self.get_device()]
         self.printColor('print', self._header, 'Select the device in which the Grub will be recovered')
@@ -174,7 +161,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                                          str(index + 1) + '): ')
                 # You could use the 'isdigit'.
                 # E.g: if not choice.isdigit():
-                if not self.isnumber(choice):
+                if not choice.isdigit():
                     self.printColor('print', self._error, 'Enter numbers only')
                     choice_device = None
                     continue
@@ -196,12 +183,12 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         except KeyboardInterrupt as ki:
                 return self.printColor('except', self._warning, 'Interrupt by user using Ctrl+C.', ki)
 
-    """
-        A function gets an argument to return what type of system the machine is using. If the argument is
-        'OS', it will return Windows, Linux or OSX, and the argument is 'distro', it will return the Linux
-        distribution being used.
-    """
     def get_system(self, p_type):
+        """
+            A function gets an argument to return what type of system the machine is using. If the argument is
+            'OS', it will return Windows, Linux or OSX, and the argument is 'distro', it will return the Linux
+            distribution being used.
+        """
         if p_type.lower() == 'os':
             from sys import platform
             if platform == "linux" or platform == "linux2":
@@ -218,8 +205,10 @@ class RecoverGrub_Engine(RecoverGrub_UI):
             raise Exception('Error check system.')
         return check_sys
 
-    """ Select partitions """
     def select_type_partition(self) -> str:
+        """
+            Select partitions
+        """
         self.printColor('print', self._header, 'Select the partition type that the system is installed on:')
         while True:
             try:
@@ -249,10 +238,10 @@ class RecoverGrub_Engine(RecoverGrub_UI):
 
         return type_partition
 
-    """
-        Function to mount the partition to be recovered by Grub.
-    """
     def mount_partition(self, device_type):
+        """
+            Function to mount the partition to be recovered by Grub.
+        """
         import sh
         from os.path import isfile
         from subprocess import check_output, STDOUT
@@ -307,26 +296,34 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                         sh.sudo.umount(self.config['mount_dir'], _fg=True)
 
         elif device_type == self.config['crypto_type']:
-            print('partition luks')
+            for partition in devices_output:
+                if isfile(self.config["mount_dir"] + '/etc/os-release'):
+                    self.printColor('print', self._warning, 'A mounted partition already exists in ' +
+                                    self.config["mount_dir"] + '. Use the "sudo umount ' +
+                                    self.config["mount_dir"] + '" command to unmount, and re-run the ' +
+                                    self.config["appname"] + '.')
+                    break
+                else:
+                    # cryptsetup
+                    check_output('sudo cryptsetup open ' + partition + ' ' + self.config['name_crypto_open'],
+                                 shell=True, stderr=STDOUT, universal_newlines=True)
+                    if not isfile(self.config["mount_dir"] + '/etc/os-release'):
+                        print('Not system.')
 
-    """
-        Function to store the functions responsible for the script requirements.
-    """
-    def requeriments(self):
+    def main(self):
+        """
+            Main function that starts the processes.
+        """
+        # Requeriments
         self.python_version_required(self.config['python_version'])
         self.modules_external(self.config['modules'])
         self.get_system('os')
 
-    """
-        Main function that starts the processes.
-    """
-    def main(self):
-        self.requeriments()
-        """ Start """
+        # Main
         args = self.menu_args()
         if args.command == 'device':
-            # self.mount_partition(self.select_type_partition())
-            self.select_device()
+            self.mount_partition(self.select_type_partition())
+            # self.select_device()
 
 
 if __name__ == '__main__':
