@@ -70,42 +70,11 @@ class RecoverGrub_Engine(RecoverGrub_UI):
     config = {'appname': 'Recover Grub',
               'appscript': 'recover-grub',
               'python_version': 3,
-              'modules': ['pyudev', 'tqdm', 'sh'],
-              'system': 'OS',
               'appversion': '3.0',
               'mount_dir': '/mnt/temp',
               'name_crypto_open': 'filesystem2',
               'crypto_type': 'crypto_LUKS'
               }
-
-    def dependencies(self, all_packages):
-        """
-            This function has the purpose of installing dependencies to execute this script through pip.
-        """
-        import os.path
-
-        # Verify pip
-        if not os.path.exists('/usr/bin/pip'):
-            self.printColor('print', self._error, 'Pip is not installed. Install as per your Linux distribution.')
-            exit(1)
-
-        from importlib import util
-        for item in all_packages:
-            spec = util.find_spec(item)
-            if spec is None:
-                try:
-                    import subprocess
-                    import sys
-                    self.printColor('print', self._header, 'Installing dependencies for ' +
-                                    self.config['appname'] + '.' * 3)
-                    subprocess.call([sys.executable, "-m", "pip", "install", "--user", item])
-                    self.printColor('print', self._okgreen, self.config['appname'] +
-                                    ' dependencies installed!\n')
-                except Exception as err:
-                    self.printColor('except', self._warning, 'There was an error installing the dependencies.',
-                                    err)
-                    exit(1)
-        # return self.printColor('print', self._okgreen, 'All dependencies have been resolved and installed.\n')
 
     def python_version_required(self, p_version: int):
         """
@@ -140,27 +109,22 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         """
             A function that returns a list of SD / HS / SSD devices on the machine.
         """
-        import pyudev
-        context = pyudev.Context()
-        for device in context.list_devices(MAJOR='8'):
-            if (device.device_type == 'disk'):
-                dev_node = device.device_node
-                # dev_type = device.device_type
-        return dev_node
+        from subprocess import check_output, STDOUT
+        command = '''lsblk -d | awk '{print "/dev/" $1}' | grep 'sd\\|hd\\|vd' '''
+        out = check_output(command, shell=True, stderr=STDOUT, universal_newlines=True).split()
+        return out
 
     def select_device(self):
         """
             A function that converses with the user to make the selection of the devices of the machine, for
             the assembly.
         """
-        # list_devices = ['/dev/sda', '/dev/sdb', '/dev/sdc', '/dev/sdd']  # line test
-        list_devices = [self.get_device()]
         self.printColor('print', self._header, 'Select the device in which the Grub will be recovered')
 
         try:
             while True:
                 print()
-                for index, item in enumerate(list_devices, start=1):
+                for index, item in enumerate(self.get_device(), start=1):
                     print(f'{index}: {item}')
                 index_quit = index + 1
                 print(f'{index_quit}: Quit\n')
@@ -183,7 +147,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                     continue
                 else:
                     choice = (int(choice) - 1)
-                    choice_device = list_devices[int(choice)]
+                    choice_device = self.get_device()[int(choice)]
                     return choice_device
                     break
         except Exception as err:
@@ -329,14 +293,13 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         """
         # Requeriments
         self.python_version_required(self.config['python_version'])
-        self.dependencies(self.config['modules'])
         self.get_system('os')
 
         # Main
         args = self.menu_args()
         if args.command == 'device':
-            self.mount_partition(self.select_type_partition())
-            # self.select_device()
+            # self.mount_partition(self.select_type_partition())
+            self.select_device()
 
 
 if __name__ == '__main__':
