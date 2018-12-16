@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 # Information:
 
@@ -38,17 +39,17 @@ class RecoverGrub_UI:
 
         # Design text using figlet. Install: $ sudo apt install figlet
         # Usage: $ figlet <Text>
-        print(f"""
+        print("""
 \033[36mWelcome to\033[0m
 \033[93m ____                               ____            _
 |  _ \ ___  ___ _____   _____ _ __ / ___|_ __ _   _| |__
 | |_) / _ \/ __/ _ \ \ / / _ \ '__| |  _| '__| | | | '_ \\
 |  _ <  __/ (_| (_) \ V /  __/ |  | |_| | |  | |_| | |_) |
 |_| \_\___|\___\___/ \_/ \___|_|   \____|_|   \__,_|_.__/\033[0m
-                                       since 2018 © v{self.config['appversion']}
-        """)
+                                       since 2018 © v{}
+        """.format(self.config['appversion']))
 
-    def printColor(self, type, color, message, options='') -> str:
+    def printColor(self, type, color, message, options=''):
         if type == 'print':
             return print(f'{color}{message}' + self._end)
         elif type == 'input':
@@ -77,10 +78,17 @@ class RecoverGrub_Engine(RecoverGrub_UI):
               'crypto_type': 'crypto_LUKS'
               }
 
-    def modules_external(self, all_packages):
+    def dependencies(self, all_packages):
         """
             This function has the purpose of installing dependencies to execute this script through pip.
         """
+        import os.path
+
+        # Verify pip
+        if not os.path.exists('/usr/bin/pip'):
+            self.printColor('print', self._error, 'Pip is not installed. Install as per your Linux distribution.')
+            exit(1)
+
         from importlib import util
         for item in all_packages:
             spec = util.find_spec(item)
@@ -111,7 +119,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
             print('Error!', err)
             exit(1)
 
-    def menu_args(self) -> str:
+    def menu_args(self):
         """
             This function will return the parameters passed in the execution of the script.
         """
@@ -128,7 +136,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         except Exception as err:
             return self.printColor('except', self._warning, 'Error in passing arguments..', err)
 
-    def get_device(self) -> str:
+    def get_device(self):
         """
             A function that returns a list of SD / HS / SSD devices on the machine.
         """
@@ -140,7 +148,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                 # dev_type = device.device_type
         return dev_node
 
-    def select_device(self) -> str:
+    def select_device(self):
         """
             A function that converses with the user to make the selection of the devices of the machine, for
             the assembly.
@@ -205,7 +213,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
             raise Exception('Error check system.')
         return check_sys
 
-    def select_type_partition(self) -> str:
+    def select_type_partition(self):
         """
             Select partitions
         """
@@ -250,8 +258,10 @@ class RecoverGrub_Engine(RecoverGrub_UI):
             shell_command = '''sudo blkid | grep ''' + device_type + '''| awk '{print $1}' | cut -d":" -f1'''
             devices_output = check_output(shell_command, shell=True, stderr=STDOUT,
                                           universal_newlines=True).splitlines()
-        except Exception:
-            return None
+        except Exception as err:
+            return self.printColor('except', self._error, 'There was an error using sudo command.', err)
+        except KeyboardInterrupt as ki:
+            return self.printColor('except', self._warning, 'Interrupt by user using Ctrl+C.', ki)
 
         if device_type == 'ext':
             for partition in devices_output:
@@ -305,8 +315,11 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                     break
                 else:
                     # cryptsetup
-                    check_output('sudo cryptsetup open ' + partition + ' ' + self.config['name_crypto_open'],
-                                 shell=True, stderr=STDOUT, universal_newlines=True)
+                    try:
+                        check_output('sudo cryptsetup open ' + partition + ' ' + self.config['name_crypto_open'],
+                                     shell=True, stderr=STDOUT, universal_newlines=True)
+                    except KeyboardInterrupt as ki:
+                        return self.printColor('except', self._warning, 'Interrupt by user using Ctrl+C.', ki)
                     if not isfile(self.config["mount_dir"] + '/etc/os-release'):
                         print('Not system.')
 
@@ -316,7 +329,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         """
         # Requeriments
         self.python_version_required(self.config['python_version'])
-        self.modules_external(self.config['modules'])
+        self.dependencies(self.config['modules'])
         self.get_system('os')
 
         # Main
