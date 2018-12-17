@@ -49,7 +49,7 @@ class RecoverGrub_UI:
                                        since 2018 © v{}
         """.format(self.config['appversion']))
 
-    def printColor(self, type, color, message, options=''):
+    def printColor(self, type, color, message, options='') -> str:
         if type == 'print':
             return print(f'{color}{message}' + self._end)
         elif type == 'input':
@@ -69,12 +69,32 @@ class RecoverGrub_Engine(RecoverGrub_UI):
 
     config = {'appname': 'Recover Grub',
               'appscript': 'recover-grub',
+              'appconfig': '.rgrub.json',
               'python_version': 3,
               'appversion': '3.0',
               'mount_dir': '/mnt/temp',
               'name_crypto_open': 'filesystem2',
               'crypto_type': 'crypto_LUKS'
               }
+
+    def create_config(self, mounted, recovered):
+        """
+            Function to create .json configuration file.
+        """
+        from json import dump
+        from os.path import isfile
+        data = {"status": {"mounted": mounted, "recovered": recovered}}
+        if not isfile(self.config['appconfig']):
+            with open(self.config['appconfig'], 'w') as outfile:
+                dump(data, outfile)
+
+    def read_config(self):
+        from json import load
+        from os.path import isfile
+        if isfile(self.config['appconfig']):
+            with open(self.config['appconfig']) as outfile:
+                data = load(outfile)
+        return data
 
     def python_version_required(self, p_version: int):
         """
@@ -114,7 +134,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         out = check_output(command, shell=True, stderr=STDOUT, universal_newlines=True).split()
         return out
 
-    def select_device(self):
+    def select_device(self) -> str:
         """
             A function that converses with the user to make the selection of the devices of the machine, for
             the assembly.
@@ -131,19 +151,14 @@ class RecoverGrub_Engine(RecoverGrub_UI):
 
                 choice = self.printColor('input', self._reply, 'Please enter your choice (1-' +
                                          str(index + 1) + '): ')
-                # You could use the 'isdigit'.
-                # E.g: if not choice.isdigit():
                 if not choice.isdigit():
                     self.printColor('print', self._error, 'Enter numbers only')
-                    choice_device = None
                     continue
                 elif int(choice) == index_quit:
-                    self.printColor('print', self._warning, 'Aborted by user')
-                    choice_device = None
+                    return str(self.printColor('print', self._warning, 'Aborted by user'))
                     break
                 elif int(choice) > (index_quit):
                     self.printColor('print', self._error, 'Option invalid')
-                    choice_device = None
                     continue
                 else:
                     choice = (int(choice) - 1)
@@ -166,9 +181,8 @@ class RecoverGrub_Engine(RecoverGrub_UI):
             if platform == "linux" or platform == "linux2":
                 check_sys = 'linux'
             else:
-                self.printColor('print', self._error,
-                                'System not compatible with this script. Use only Linux.')
-                check_sys = None
+                check_sys = str(self.printColor('print', self._error,
+                                                'System not compatible with this script. Use only Linux.'))
                 exit(1)
         elif p_type.lower() == 'distro':
             import platform
@@ -198,7 +212,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                     type_partition = self.config['crypto_type']
                     break
                 elif choice == "3":
-                    return self.printColor('print', self._warning, 'Aborted by user.')
+                    return str(self.printColor('print', self._warning, 'Aborted by user.'))
                     break
                 else:
                     self.printColor('print', self._error, 'Option invalid!')
@@ -298,8 +312,12 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         # Main
         args = self.menu_args()
         if args.command == 'device':
-            # self.mount_partition(self.select_type_partition())
-            self.select_device()
+            self.create_config('false', 'false')
+            if self.read_config()['status']['mounted'] == 'true':
+                print('Ja montado')
+            elif self.read_config()['status']['mounted'] == 'false':
+                self.mount_partition(self.select_type_partition())
+                # self.select_device()
 
 
 if __name__ == '__main__':
