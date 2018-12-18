@@ -141,15 +141,13 @@ class RecoverGrub_Engine(RecoverGrub_UI):
             Function to create .json configuration file.
         """
         from json import dump
-        # from os.path import isfile
         data = {
                 "status":
                 {
                     "mounted": mounted,
                     "recovered": recovered
                 },
-                "device": device,
-                "parttype": "null"
+                "device": device
                 }
         with open(file, 'w') as outfile:
             dump(data, outfile)
@@ -322,8 +320,11 @@ start      It really starts the Grub recovery.
                                 # Enter in Chroot.
                                 check_call(['chroot', self.config['mount_dir'], '/bin/bash'])
                                 # Exit chroot.
-                                check_output(['rm', '-f', self.config['mount_dir'] + '/etc/' + self.config['appconfig']])
-                                check_output(['rm', '-f', self.config['mount_dir'] + '/usr/local/bin/' + self.config['appscript']])
+                                check_output(['rm', '-f',
+                                              self.config['mount_dir'] + '/etc/' + self.config['appconfig']])
+                                check_output(['rm', '-f',
+                                              self.config['mount_dir'] + '/usr/local/bin/' +
+                                              self.config['appscript']])
                                 check_output(['umount', '-R', self.config["mount_dir"]])
                             except Exception as err:
                                 self.printColor('except', self._warning, 'Error in performing assemblies.', err)
@@ -366,39 +367,51 @@ start      It really starts the Grub recovery.
         self.verify_user(0)
 
         args = self.menu_args()
+
         if args.command == 'device':
+
             if not isfile('/etc/' + self.config['appconfig']):
                 self.create_config('/etc/' + self.config['appconfig'], 'false', 'false',
                                    self.select_device())
+
             if self.read_config('/etc/' + self.config['appconfig'])['status']['mounted'] == 'true':
                 self.printColor('print', self._warning,
                                 'The partition is already mounted. Use the command "recover-grub start".')
+
             elif self.read_config('/etc/' + self.config['appconfig'])['status']['mounted'] == 'false':
+
                 if self.read_config('/etc/' + self.config['appconfig'])['device'] == 'None':
                     self.printColor('print', self._error,
                                     'You did not specify the "device". There is no way to go. Repeat the steps ' +
                                     'again with the command "recover-grub device".')
                     check_output(['rm', '-f', '/etc/' + self.config['appconfig']])
                     exit(1)
+
                 self.mount_partition(self.select_type_partition())
+
         elif args.command == 'start':
-            if isfile('/etc/' + self.config['appconfig']):
-                if self.read_config('/etc/' + self.config['appconfig'])['status']['mounted'] == 'true':
-                    if self.read_config('/etc/' + self.config['appconfig'])['status']['recovered'] == 'true':
+
+            configfile = '/etc/' + self.config['appconfig']
+
+            if isfile(configfile):
+                if self.read_config(configfile)['status']['mounted'] == 'true':
+                    if self.read_config(configfile)['status']['recovered'] == 'true':
                         self.printColor('print', self._warning,
                                         'You have already made the recovery in this session, if you want to do ' +
                                         'again skirt with command "exit".')
                         exit(0)
+
                     self.printColor('print', self._header, 'Starting Grub recovery ...')
                     check_output(['grub-mkconfig', '-o', '/boot/grub/grub.cfg'])
                     check_output(['grub-install', self.read_config('/etc/' + self.config['appconfig'])['device']])
-                    config_dir = '/etc/' + self.config['appconfig']
-                    self.create_config(config_dir, 'true', 'true')
+                    self.create_config(configfile, 'true', 'true')
                     self.printColor('print', self._okgreen, 'The Grub recovery was completed. Run the "exit" '
                                     + 'command to exit the chroot.')
+
                 else:
                     self.printColor('print', self._warning,
                                     'The recovery partition is not mounted. Run "recover-grub device".')
+
             else:
                 self.printColor('print', self._warning,
                                 'You must specify the device and partition before starting recovery. Run ' +
