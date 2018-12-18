@@ -69,7 +69,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
 
     config = {'appname': 'Recover Grub',
               'appscript': 'recover-grub',
-              'appconfig': '.rgrub.json',
+              'appconfig': 'recover-grub.json',
               'python_version': 3,
               'appversion': '3.0',
               'mount_dir': '/mnt/temp',
@@ -77,7 +77,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
               'crypto_type': 'crypto_LUKS'
               }
 
-    def verify_root(self, uid):
+    def verify_user(self, uid):
         """
             Function to check if script is running with superuser.
         """
@@ -124,40 +124,42 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         except KeyboardInterrupt as ki:
                 return self.printColor('except', self._warning, 'Interrupt by user using Ctrl+C.', ki)
 
-    def copyfiles_rg(self, file):
+    def copyfiles(self, file):
         """
             Function to perform a copy of this same script for the assembled pointer.
         """
-        from shutil import copyfile
+        from shutil import copy2
         from os import chmod
-        if file == 'setup':
+        if file == 'exec':
             pathfile = self.config['mount_dir'] + '/usr/local/bin/' + self.config['appscript']
-            copyfile(self.config['appscript'], pathfile)
+            copy2(self.config['appscript'], pathfile)
             chmod(pathfile, 0o775)
-        elif file == 'config':
-            pathfile = self.config['mount_dir'] + '/etc/' + self.config['appconfig']
-            copyfile(self.config['appconfig'], pathfile)
-            chmod(pathfile, 777)
 
-    def create_config(self, mounted, recovered):
+    def create_config(self, file, mounted, recovered, partition):
         """
             Function to create .json configuration file.
         """
         from json import dump
-        from os.path import isfile
-        if not isfile(self.config['appconfig']):
-            data = {"status": {"mounted": mounted, "recovered": recovered}, "partition": self.select_device()}
-            with open(self.config['appconfig'], 'w') as outfile:
-                dump(data, outfile)
+        # from os.path import isfile
+        data = {
+                "status":
+                {
+                    "mounted": mounted,
+                    "recovered": recovered
+                },
+                "partition": partition
+                }
+        with open(file, 'w') as outfile:
+            dump(data, outfile)
 
-    def read_config(self) -> str:
+    def read_config(self, pathfile):
         """
             Function to read .json configuration file.
         """
         from json import load
         from os.path import isfile
-        if isfile(self.config['appconfig']):
-            with open(self.config['appconfig']) as outfile:
+        if isfile(pathfile):
+            with open(pathfile) as outfile:
                 data = load(outfile)
         return data
 
@@ -194,9 +196,9 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         """
             A function that returns a list of SD / HS / SSD devices on the machine.
         """
-        from subprocess import check_output, STDOUT
+        from subprocess import check_output
         command = '''lsblk -d | awk '{print "/dev/" $1}' | grep 'sd\\|hd\\|vd' '''
-        out = check_output(command, shell=True, stderr=STDOUT, universal_newlines=True).split()
+        out = check_output(command, shell=True, universal_newlines=True).split()
         return out
 
     def get_system(self, p_type):
@@ -258,11 +260,11 @@ class RecoverGrub_Engine(RecoverGrub_UI):
             Function to mount the partition to be recovered by Grub.
         """
         from os.path import isfile
-        from subprocess import check_output, STDOUT
+        from subprocess import check_output, check_call
 
         try:
             shell_command = '''blkid | grep ''' + device_type + '''| awk '{print $1}' | cut -d":" -f1'''
-            devices_output = check_output(shell_command, shell=True, stderr=STDOUT,
+            devices_output = check_output(shell_command, shell=True,
                                           universal_newlines=True).splitlines()
         except Exception as err:
             return self.printColor('except', self._error, 'There was an error using superuser command.', err)
@@ -280,29 +282,34 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                 else:
                     check_output(['mount', partition, self.config["mount_dir"]])
                     if isfile(self.config["mount_dir"] + '/etc/os-release'):
-                        content_os_release = check_output(['cat', self.config["mount_dir"], '/etc/os-release'],
-                                                          stderr=STDOUT, universal_newlines=True)
+                        content_os_release = check_output(['cat', self.config["mount_dir"] + '/etc/os-release'],
+                                                          universal_newlines=True)
                         dict_os_release = dict([i.split('=') for i in content_os_release.strip().split('\n')])
                         distro_name = dict_os_release['NAME'].replace('"', '')
                         distro_pretty_name = dict_os_release['PRETTY_NAME'].replace('"', '')
 
                         if distro_name == self.get_system('distro'):
                             try:
-                                check_output(['mount', '--bind', '/dev', self.config["mount_dir"], '/dev'])
-                                check_output(['mount', '--bind', '/dev/pts', self.config["mount_dir"], '/dev/pts'])
-                                check_output(['mount', '--bind', '/proc', self.config["mount_dir"], '/proc'])
-                                check_output(['mount', '--bind', '/sys', self.config["mount_dir"], '/sys'])
+                                check_output(['mount', '--bind', '/dev', self.config["mount_dir"] + '/dev'])
+                                check_output(['mount', '--bind', '/dev/pts', self.config["mount_dir"] +
+                                             '/dev/pts'])
+                                check_output(['mount', '--bind', '/proc', self.config["mount_dir"] + '/proc'])
+                                check_output(['mount', '--bind', '/sys', self.config["mount_dir"] + '/sys'])
                                 self.printColor('print', self._okgreen, 'Partition containing "' +
                                                 distro_pretty_name + '" was found and mounted on "' +
                                                 self.config['mount_dir'] + '".')
-                                self.create_config('true', 'false')
-                                self.copyfiles_rg('setup')
-                                self.copyfiles_rg('config')
+                                self.create_config(self.config['mount_dir'] + '/etc/' +
+                                                   self.config['appconfig'], 'true', 'false',
+                                                   self.read_config('/etc/' +
+                                                   self.config['appconfig'])['partition'])
+                                self.copyfiles('exec')
                                 self.printColor('print', self._warning, 'You are now in the chroot. Run ' +
                                                 '\033[36m"recover-grub start"\033[93m to start Grub recovery.')
                                 # Enter in Chroot.
-                                check_output(['chroot', self.config["mount_dir"], '/bin/bash'])
+                                check_call(["chroot", self.config["mount_dir"], "/bin/bash"])
                                 # Exit chroot.
+                                check_output(['rm', '-f', '/etc/' + self.config['appconfig']])
+                                check_output(['rm', '-f', '/usr/local/bin/' + self.config['appscript']])
                                 check_output(['umount', '-R', self.config["mount_dir"]])
                             except Exception as err:
                                 self.printColor('except', self._warning, 'Error in performing assemblies.', err)
@@ -326,7 +333,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                     # cryptsetup
                     try:
                         check_output('cryptsetup open ' + partition + ' ' + self.config['name_crypto_open'],
-                                     shell=True, stderr=STDOUT, universal_newlines=True)
+                                     shell=True, universal_newlines=True)
                     except KeyboardInterrupt as ki:
                         return self.printColor('except', self._warning, 'Interrupt by user using Ctrl+C.', ki)
                     if not isfile(self.config["mount_dir"] + '/etc/os-release'):
@@ -339,19 +346,21 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         # Requeriments
         self.python_version_required(self.config['python_version'])
         self.get_system('os')
-        self.verify_root(0)
+        self.verify_user(0)
 
         args = self.menu_args()
         if args.command == 'device':
-            self.create_config('false', 'false')
-            if self.read_config()['status']['mounted'] == 'true':
-                self.printColor('print', self._warning, 'The partition is already mounted. I use the command to ' +
-                                'recover.')
-                exit(0)
-            elif self.read_config()['status']['mounted'] == 'false':
-                # self.copyfiles_rg()
-                # self.select_device() # not
+            from os.path import isfile
+            if not isfile('/etc/' + self.config['appconfig']):
+                self.create_config('/etc/' + self.config['appconfig'], 'false', 'false',
+                                   self.select_device())
+            if self.read_config('/etc/' + self.config['appconfig'])['status']['mounted'] == 'true':
+                self.printColor('print', self._warning,
+                                'The partition is already mounted. I use the command to recover.')
+            elif self.read_config('/etc/' + self.config['appconfig'])['status']['mounted'] == 'false':
                 self.mount_partition(self.select_type_partition())
+        elif args.command == 'start':
+            print('Starting recover...')
 
 
 if __name__ == '__main__':
