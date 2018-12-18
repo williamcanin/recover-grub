@@ -13,6 +13,10 @@ Read in [English](https://github.com/williamcanin/recover-grub/blob/master/READM
   lembrar e digitar comandos complicados.
 
 
+**[ REQUIRIMENTOS]**
+
+  - Python 3.+
+
 **[ COMPATIBILIDADE ]**
 
   Sistemas Linux.

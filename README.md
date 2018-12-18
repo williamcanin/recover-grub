@@ -13,6 +13,9 @@ Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/
    Linux in a more automatic way, not needing the user
    remember and enter complicated commands.
 
+**[ REQUIREMENTS ]**
+
+  - Python 3.+
 
 **[ COMPATIBILITY ]**
 
