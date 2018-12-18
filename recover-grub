@@ -77,6 +77,17 @@ class RecoverGrub_Engine(RecoverGrub_UI):
               'crypto_type': 'crypto_LUKS'
               }
 
+    def verify_root(self, uid):
+        """
+            Function to check if script is running with superuser.
+        """
+        from os import geteuid
+
+        if geteuid() != uid:
+            self.printColor('print', self._warning,
+                            self.config['appname'] + ' can only be run with superuser (root). Aborted!')
+            exit(0)
+
     def select_device(self) -> str:
         """
             A function that converses with the user to make the selection of the devices of the machine, for
@@ -120,7 +131,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         from shutil import copyfile
         from os import chmod
         if file == 'setup':
-            pathfile = self.config['mount_dir'] + '/usr/bin/' + self.config['appscript']
+            pathfile = self.config['mount_dir'] + '/usr/local/bin/' + self.config['appscript']
             copyfile(self.config['appscript'], pathfile)
             chmod(pathfile, 0o775)
         elif file == 'config':
@@ -139,7 +150,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
             with open(self.config['appconfig'], 'w') as outfile:
                 dump(data, outfile)
 
-    def read_config(self):
+    def read_config(self) -> str:
         """
             Function to read .json configuration file.
         """
@@ -246,16 +257,15 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         """
             Function to mount the partition to be recovered by Grub.
         """
-        import sh
         from os.path import isfile
         from subprocess import check_output, STDOUT
 
         try:
-            shell_command = '''sudo blkid | grep ''' + device_type + '''| awk '{print $1}' | cut -d":" -f1'''
+            shell_command = '''blkid | grep ''' + device_type + '''| awk '{print $1}' | cut -d":" -f1'''
             devices_output = check_output(shell_command, shell=True, stderr=STDOUT,
                                           universal_newlines=True).splitlines()
         except Exception as err:
-            return self.printColor('except', self._error, 'There was an error using sudo command.', err)
+            return self.printColor('except', self._error, 'There was an error using superuser command.', err)
         except KeyboardInterrupt as ki:
             return self.printColor('except', self._warning, 'Interrupt by user using Ctrl+C.', ki)
 
@@ -268,41 +278,41 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                                     self.config["appname"] + '.')
                     break
                 else:
-                    sh.sudo.mount(partition, self.config["mount_dir"], _fg=True)
+                    check_output(['mount', partition, self.config["mount_dir"]])
                     if isfile(self.config["mount_dir"] + '/etc/os-release'):
-                        content_os_release = sh.cat(self.config["mount_dir"] + '/etc/os-release')
+                        content_os_release = check_output(['cat', self.config["mount_dir"], '/etc/os-release'],
+                                                          stderr=STDOUT, universal_newlines=True)
                         dict_os_release = dict([i.split('=') for i in content_os_release.strip().split('\n')])
                         distro_name = dict_os_release['NAME'].replace('"', '')
                         distro_pretty_name = dict_os_release['PRETTY_NAME'].replace('"', '')
 
                         if distro_name == self.get_system('distro'):
                             try:
-                                sh.sudo.mount("--bind", "/dev", self.config['mount_dir'] + "/dev", _fg=True)
-                                sh.sudo.mount("--bind", "/dev/pts", self.config['mount_dir'] + "/dev/pts",
-                                              _fg=True)
-                                sh.sudo.mount("--bind", "/proc", self.config['mount_dir'] + "/proc", _fg=True)
-                                sh.sudo.mount("--bind", "/sys", self.config['mount_dir'] + "/sys", _fg=True)
+                                check_output(['mount', '--bind', '/dev', self.config["mount_dir"], '/dev'])
+                                check_output(['mount', '--bind', '/dev/pts', self.config["mount_dir"], '/dev/pts'])
+                                check_output(['mount', '--bind', '/proc', self.config["mount_dir"], '/proc'])
+                                check_output(['mount', '--bind', '/sys', self.config["mount_dir"], '/sys'])
                                 self.printColor('print', self._okgreen, 'Partition containing "' +
                                                 distro_pretty_name + '" was found and mounted on "' +
                                                 self.config['mount_dir'] + '".')
                                 self.create_config('true', 'false')
-                                # self.copyfiles_rg('setup')
-                                # self.copyfiles_rg('config')
+                                self.copyfiles_rg('setup')
+                                self.copyfiles_rg('config')
                                 self.printColor('print', self._warning, 'You are now in the chroot. Run ' +
                                                 '\033[36m"recover-grub start"\033[93m to start Grub recovery.')
                                 # Enter in Chroot.
-                                sh.sudo.chroot(self.config['mount_dir'], "/bin/bash", _fg=True)
+                                check_output(['chroot', self.config["mount_dir"], '/bin/bash'])
                                 # Exit chroot.
-                                sh.sudo.umount("-R", self.config['mount_dir'], _fg=True)
+                                check_output(['umount', '-R', self.config["mount_dir"]])
                             except Exception as err:
                                 self.printColor('except', self._warning, 'Error in performing assemblies.', err)
-                                sh.sudo.umount("-R", self.config['mount_dir'], _fg=True)
+                                check_output(['umount', '-R', self.config["mount_dir"]])
                             break
                         elif distro_name != self.get_system('distro'):
-                            sh.sudo.umount(self.config['mount_dir'], _fg=True)
+                            check_output(['umount', self.config["mount_dir"]])
                             continue
                     else:
-                        sh.sudo.umount(self.config['mount_dir'], _fg=True)
+                        check_output(['umount', self.config["mount_dir"]])
 
         elif device_type == self.config['crypto_type']:
             for partition in devices_output:
@@ -315,7 +325,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                 else:
                     # cryptsetup
                     try:
-                        check_output('sudo cryptsetup open ' + partition + ' ' + self.config['name_crypto_open'],
+                        check_output('cryptsetup open ' + partition + ' ' + self.config['name_crypto_open'],
                                      shell=True, stderr=STDOUT, universal_newlines=True)
                     except KeyboardInterrupt as ki:
                         return self.printColor('except', self._warning, 'Interrupt by user using Ctrl+C.', ki)
@@ -329,6 +339,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         # Requeriments
         self.python_version_required(self.config['python_version'])
         self.get_system('os')
+        self.verify_root(0)
 
         args = self.menu_args()
         if args.command == 'device':
@@ -341,7 +352,6 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                 # self.copyfiles_rg()
                 # self.select_device() # not
                 self.mount_partition(self.select_type_partition())
-
 
 
 if __name__ == '__main__':
