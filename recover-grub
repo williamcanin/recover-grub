@@ -181,13 +181,23 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         """
             This function will return the parameters passed in the execution of the script.
         """
-        from argparse import ArgumentParser
+        from argparse import ArgumentParser, RawTextHelpFormatter
         try:
-            parser = ArgumentParser(prog='prog',
-                                    usage='usage',
-                                    description='desc')
-            parser.add_argument('command', action='store',
-                                type=str, default='--help')
+            parser = ArgumentParser(prog=self.config['appname'],
+                                    usage='python3 ' + self.config['appscript'] + ' [command]',
+                                    description=self.config['appname'] + ' is a script to perform Grub recovery '
+                                    + 'on Linux.',
+                                    formatter_class=RawTextHelpFormatter,
+                                    epilog="See you later!!")
+            parser.add_argument('command', action='store', metavar="[command]",
+                                type=str,
+                                help="""
+device     Performs the partition search in the distribution to be
+           recovered, and the devices to install Grub.
+
+start      It really starts the Grub recovery.
+           Note: First you have to execute the "device" option.
+                                         """)
             args = parser.parse_args()
             return args
 
