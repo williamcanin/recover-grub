@@ -46,7 +46,7 @@ class RecoverGrub_UI:
 | |_) / _ \/ __/ _ \ \ / / _ \ '__| |  _| '__| | | | '_ \\
 |  _ <  __/ (_| (_) \ V /  __/ |  | |_| | |  | |_| | |_) |
 |_| \_\___|\___\___/ \_/ \___|_|   \____|_|   \__,_|_.__/\033[0m
-                                       since 2018 © v{}
+                                   \xa9 2018 - v{}
         """.format(self.config['appversion']))
 
     def printColor(self, type, color, message, options='') -> str:
@@ -72,7 +72,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
               'appconfig': 'recover-grub.json',
               'configdir': '/etc',
               'python_version': 3,
-              'appversion': '3.0',
+              'appversion': '3.0 - (beta)',
               'mount_dir': '/mnt/temp',
               'name_crypto_open': 'filesystem2',
               'crypto_type': 'crypto_LUKS'
@@ -136,7 +136,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
             copy2(self.config['appscript'], pathfile)
             chmod(pathfile, 0o775)
 
-    def create_config(self, file, mounted, recovered, partition):
+    def create_config(self, file, mounted, recovered, device=''):
         """
             Function to create .json configuration file.
         """
@@ -148,7 +148,8 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                     "mounted": mounted,
                     "recovered": recovered
                 },
-                "partition": partition
+                "device": device,
+                "parttype": "null"
                 }
         with open(file, 'w') as outfile:
             dump(data, outfile)
@@ -230,20 +231,22 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         self.printColor('print', self._header, 'Select the partition type that the system is installed on:')
         while True:
             try:
+                # For non-beta version.
+                # 2: {self.config['crypto_type'].title().replace('_', ' (')})
                 choice = input(f"""
 1: Ext3/Ext4
-2: {self.config['crypto_type'].title().replace('_', ' (')})
-3: Quit
+2: Quit
 
-\033[95m→ Please enter your choice (1-3): \033[0m""")
+\033[95m→ Please enter your choice (1-2): \033[0m""")
 
                 if choice == "1":
                     type_partition = 'ext'
                     break
+                # For non-beta version.
+                # elif choice == "2":
+                #     type_partition = self.config['crypto_type']
+                #     break
                 elif choice == "2":
-                    type_partition = self.config['crypto_type']
-                    break
-                elif choice == "3":
                     return str(self.printColor('print', self._warning, 'Aborted by user.'))
                     break
                 else:
@@ -302,15 +305,15 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                                 self.create_config(self.config['mount_dir'] + '/etc/' +
                                                    self.config['appconfig'], 'true', 'false',
                                                    self.read_config('/etc/' +
-                                                   self.config['appconfig'])['partition'])
+                                                   self.config['appconfig'])['device'])
                                 self.copyfiles('exec')
                                 self.printColor('print', self._warning, 'You are now in the chroot. Run ' +
                                                 '\033[36m"recover-grub start"\033[93m to start Grub recovery.')
                                 # Enter in Chroot.
-                                check_call(["chroot", self.config["mount_dir"], "/bin/bash"])
+                                check_call(['chroot', self.config['mount_dir'], '/bin/bash'])
                                 # Exit chroot.
-                                check_output(['rm', '-f', '/etc/' + self.config['appconfig']])
-                                check_output(['rm', '-f', '/usr/local/bin/' + self.config['appscript']])
+                                check_output(['rm', '-f', self.config['mount_dir'] + '/etc/' + self.config['appconfig']])
+                                check_output(['rm', '-f', self.config['mount_dir'] + '/usr/local/bin/' + self.config['appscript']])
                                 check_output(['umount', '-R', self.config["mount_dir"]])
                             except Exception as err:
                                 self.printColor('except', self._warning, 'Error in performing assemblies.', err)
@@ -322,28 +325,31 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                     else:
                         check_output(['umount', self.config["mount_dir"]])
 
-        elif device_type == self.config['crypto_type']:
-            for partition in devices_output:
-                if isfile(self.config["mount_dir"] + '/etc/os-release'):
-                    self.printColor('print', self._warning, 'A mounted partition already exists in ' +
-                                    self.config["mount_dir"] + '. Use the "sudo umount ' +
-                                    self.config["mount_dir"] + '" command to unmount, and re-run the ' +
-                                    self.config["appname"] + '.')
-                    break
-                else:
-                    # cryptsetup
-                    try:
-                        check_output('cryptsetup open ' + partition + ' ' + self.config['name_crypto_open'],
-                                     shell=True, universal_newlines=True)
-                    except KeyboardInterrupt as ki:
-                        return self.printColor('except', self._warning, 'Interrupt by user using Ctrl+C.', ki)
-                    if not isfile(self.config["mount_dir"] + '/etc/os-release'):
-                        print('Not system.')
+        # For non-beta version.
+        # elif device_type == self.config['crypto_type']:
+        #     for partition in devices_output:
+        #         if isfile(self.config["mount_dir"] + '/etc/os-release'):
+        #             self.printColor('print', self._warning, 'A mounted partition already exists in ' +
+        #                             self.config["mount_dir"] + '. Use the "sudo umount ' +
+        #                             self.config["mount_dir"] + '" command to unmount, and re-run the ' +
+        #                             self.config["appname"] + '.')
+        #             break
+        #         else:
+        #             # cryptsetup
+        #             try:
+        #                 check_output('cryptsetup open ' + partition + ' ' + self.config['name_crypto_open'],
+        #                              shell=True, universal_newlines=True)
+        #             except KeyboardInterrupt as ki:
+        #                 return self.printColor('except', self._warning, 'Interrupt by user using Ctrl+C.', ki)
+        #             if not isfile(self.config["mount_dir"] + '/etc/os-release'):
+        #                 print('Not system.')
 
     def main(self):
         """
             Main function that starts the processes.
         """
+        from subprocess import check_output
+        from os.path import isfile
         # Requeriments
         self.python_version_required(self.config['python_version'])
         self.get_system('os')
@@ -351,17 +357,42 @@ class RecoverGrub_Engine(RecoverGrub_UI):
 
         args = self.menu_args()
         if args.command == 'device':
-            from os.path import isfile
             if not isfile('/etc/' + self.config['appconfig']):
                 self.create_config('/etc/' + self.config['appconfig'], 'false', 'false',
                                    self.select_device())
             if self.read_config('/etc/' + self.config['appconfig'])['status']['mounted'] == 'true':
                 self.printColor('print', self._warning,
-                                'The partition is already mounted. I use the command to recover.')
+                                'The partition is already mounted. Use the command "recover-grub start".')
             elif self.read_config('/etc/' + self.config['appconfig'])['status']['mounted'] == 'false':
+                if self.read_config('/etc/' + self.config['appconfig'])['device'] == 'None':
+                    self.printColor('print', self._error,
+                                    'You did not specify the "device". There is no way to go. Repeat the steps ' +
+                                    'again with the command "recover-grub device".')
+                    check_output(['rm', '-f', '/etc/' + self.config['appconfig']])
+                    exit(1)
                 self.mount_partition(self.select_type_partition())
         elif args.command == 'start':
-            print('Starting recover...')
+            if isfile('/etc/' + self.config['appconfig']):
+                if self.read_config('/etc/' + self.config['appconfig'])['status']['mounted'] == 'true':
+                    if self.read_config('/etc/' + self.config['appconfig'])['status']['recovered'] == 'true':
+                        self.printColor('print', self._warning,
+                                        'You have already made the recovery in this session, if you want to do ' +
+                                        'again skirt with command "exit".')
+                        exit(0)
+                    self.printColor('print', self._header, 'Starting Grub recovery ...')
+                    check_output(['grub-mkconfig', '-o', '/boot/grub/grub.cfg'])
+                    check_output(['grub-install', self.read_config('/etc/' + self.config['appconfig'])['device']])
+                    config_dir = '/etc/' + self.config['appconfig']
+                    self.create_config(config_dir, 'true', 'true')
+                    self.printColor('print', self._okgreen, 'The Grub recovery was completed. Run the "exit" '
+                                    + 'command to exit the chroot.')
+                else:
+                    self.printColor('print', self._warning,
+                                    'The recovery partition is not mounted. Run "recover-grub device".')
+            else:
+                self.printColor('print', self._warning,
+                                'You must specify the device and partition before starting recovery. Run ' +
+                                '"recover-grub device"')
 
 
 if __name__ == '__main__':
