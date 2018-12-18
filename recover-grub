@@ -73,7 +73,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
               'execdir': '/usr/local/bin/',
               'python_version': 3,
               'appversion': '3.0 - (beta)',
-              'mount_dir': '/mnt/temp',
+              'mount_dir': '/mnt',
               'name_crypto_open': 'filesystem2',
               'crypto_type': 'crypto_LUKS'
               }
