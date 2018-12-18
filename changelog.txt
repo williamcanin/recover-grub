@@ -1,2 +1,18 @@
-[x] Resolver erro do menu 'select_device'
-[x] exception ctrl+c
+# Change Log
+
+All notable changes to this project will be documented in this file.
+This project adheres to [Semantic Versioning](http://semver.org/).
+
+CHANGELOG - Portuguese - Brazil
+
+## [3.0.0] (Beta) - 2018-12-07
+### Alterado
+- Deixando script com módulos nativo.
+- Otimizando o código {Build 1}.
+### Adicionado
+- Criando classe para UI.
+- Criando texto gráfico de welcome.
+
+## [3.0.1] (Beta) - Sem prévia
+### Adicionado
+- Opção para partições criptografadas (LUKS)
