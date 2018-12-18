@@ -70,6 +70,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
     config = {'appname': 'Recover Grub',
               'appscript': 'recover-grub',
               'appconfig': 'recover-grub.json',
+              'configdir': '/etc',
               'python_version': 3,
               'appversion': '3.0',
               'mount_dir': '/mnt/temp',
