@@ -235,10 +235,13 @@ credits    Print the {self.config['appname']} credits.
         """
             A function that returns a list of SD / HS / SSD devices on the machine.
         """
-        from subprocess import check_output
-        command = '''lsblk -d | awk '{print "/dev/" $1}' | grep 'sd\\|hd\\|vd' '''
-        out = check_output(command, shell=True, universal_newlines=True).split()
-        return out
+        try:
+            from subprocess import check_output
+            command = '''lsblk -d | awk '{print "/dev/" $1}' | grep 'sd\\|hd\\|vd' '''
+            out = check_output(command, shell=True, universal_newlines=True).split()
+            return out
+        except Exception as err:
+            return self.printColor('except', self._warning, 'Unable to pick up the devices.', err)
 
     def get_system(self, type):
         """
@@ -269,18 +272,22 @@ credits    Print the {self.config['appname']} credits.
                 # Option 2 -> 2: {self.config['crypto_type'].title().replace('_', ' (')})
                 choice = input(f"""
 1: Ext3/Ext4
-2: Quit
+2: Btrfs
+3: Quit
 
 \033[95m→ Please enter your choice (1-2): \033[0m""")
 
                 if choice == "1":
                     type_partition = 'ext'
                     break
+                elif choice == "2":
+                    type_partition = 'btrfs'
+                    break
                 # For non-beta version.
-                # elif choice == "2":
+                # elif choice == "3":
                 #     type_partition = self.config['crypto_type']
                 #     break
-                elif choice == "2":
+                elif choice == "3":
                     return str(self.printColor('print', self._warning, 'Aborted by user.'))
                     break
                 else:
@@ -297,11 +304,14 @@ credits    Print the {self.config['appname']} credits.
         """
             Function to return the Linux distribution data.
         """
-        from subprocess import check_output
-        content_os_release = check_output(['cat', os_release], universal_newlines=True)
-        dict_os_release = dict([i.split('=') for i in content_os_release.strip().split('\n')])
-        distro_name = dict_os_release[key].replace('"', '')
-        return distro_name
+        try:
+            from subprocess import check_output
+            content_os_release = check_output(['cat', os_release], universal_newlines=True)
+            dict_os_release = dict([i.split('=') for i in content_os_release.strip().split('\n')])
+            distro_name = dict_os_release[key].replace('"', '')
+            return distro_name
+        except Exception as err:
+            return self.printColor('except', self._warning, 'No distro was returned.', err)
 
     def mount_partition(self, device_type):
         """
@@ -311,7 +321,7 @@ credits    Print the {self.config['appname']} credits.
         from subprocess import check_output, check_call
 
         try:
-            shell_command = '''blkid | grep ''' + device_type + '''| awk '{print $1}' | cut -d":" -f1'''
+            shell_command = '''blkid | grep ''' + device_type + ''' | awk '{print $1}' | cut -d":" -f1'''
             devices_output = check_output(shell_command, shell=True,
                                           universal_newlines=True).splitlines()
             distro_current = self.get_distro('/etc/os-release', 'NAME')
@@ -320,7 +330,12 @@ credits    Print the {self.config['appname']} credits.
         except KeyboardInterrupt as ki:
             return self.printColor('except', self._warning, 'Interrupt by user using Ctrl+C.', ki)
 
-        if device_type == 'ext':
+        if len(devices_output) == 0:
+            self.printColor('print', self._warning,
+                            'No device of type "' + device_type.title() + '" was found. Aborded.')
+            exit(1)
+
+        if device_type == 'ext' or device_type == 'btrfs':
             for partition in devices_output:
                 if isfile(self.config["mount_dir"] + '/etc/os-release'):
                     self.printColor('print', self._warning, 'A mounted partition already exists in ' +
