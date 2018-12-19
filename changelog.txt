@@ -8,13 +8,22 @@ CHANGELOG - Portuguese - Brazil
 ## [3.0.0] (Beta) - 2018-12-07
 ### Alterado
 - Deixando script com módulos nativo.
-- Otimizando o código {Build 1}.
+- Otimizando o código {Build 2}.
 - Removendo verificação da distribuição pelo 'platform.dist()'
 ### Adicionado
 - Criando classe para UI.
 - Criando texto gráfico de welcome.
 - Nova função get_distro()
+- Função de creditos.
 
 ## [3.0.1] (Beta) - Sem prévia
 ### Adicionado
 - Opção para partições criptografadas (LUKS)
+
+## [3.1.1] - Sem prévia
+### Alterado
+- Nova forma de executar Recover Grub. (Ex: recover-grub {--device|--start|--credits} run)
+  Comparação de script:
+  if self.menu_args().credits == 'run':
+        self.credits()
+  ...

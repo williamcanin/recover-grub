@@ -46,7 +46,7 @@ class RecoverGrub_UI:
 | |_) / _ \/ __/ _ \ \ / / _ \ '__| |  _| '__| | | | '_ \\
 |  _ <  __/ (_| (_) \ V /  __/ |  | |_| | |  | |_| | |_) |
 |_| \_\___|\___\___/ \_/ \___|_|   \____|_|   \__,_|_.__/\033[0m
-                                   \xa9 2018 - v{}
+                             \xa9 since 2016 - v{}
         """.format(self.config['appversion']))
 
     def printColor(self, type, color, message, options='') -> str:
@@ -75,11 +75,36 @@ class RecoverGrub_Engine(RecoverGrub_UI):
               'appversion': '3.0 - (beta)',
               'mount_dir': '/mnt',
               'name_crypto_open': 'filesystem2',
-              'crypto_type': 'crypto_LUKS'
+              'crypto_type': 'crypto_LUKS',
+              'author': {
+                        'name': 'William da Costa Canin',
+                        'email': 'william.costa.canin@gmail.com',
+                        'website': 'https://williamcanin.me',
+                        'github': 'https://github.com/williamcanin'
+                        }
               }
 
-    global EXEC
-    EXEC = config['execdir'] + config['appscript']
+    config.update({'pathexec': config['execdir'] + config['appscript']})
+
+    def credits(self):
+        from datetime import date
+        print(f"""\033[36m
+   ---------------------------------------------------------
+  |            {self.config['appname']} - Version {self.config['appversion']}          |
+   ---------------------------------------------------------
+  |                         Credits:                        |
+  |                                                         |
+  |           Author: {self.config['author']['name']}                |
+  |           E-Mail: {self.config['author']['email']}         |
+  |           Website: {self.config['author']['website']}              |
+  |           GitHub: {self.config['author']['github']}       |
+  |           Locale: Brazil - SP                           |
+  |                                                         |
+  |                                                         |
+  |    {self.config['appname']} © 2016-{date.today().year} - All Right Reserved.       |
+  |    Doc: http://github.com/williamcanin/recover-grub     |
+  |---------------------------------------------------------|
+        \033[0m""")
 
     def verify_user(self, uid):
         """
@@ -135,8 +160,8 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         from shutil import copy2
         from os import chmod
         if file == 'exec':
-            copy2(self.config['appscript'], self.config['mount_dir'] + EXEC)
-            chmod(self.config['mount_dir'] + EXEC, 0o775)
+            copy2(self.config['appscript'], self.config['mount_dir'] + self.config['pathexec'])
+            chmod(self.config['mount_dir'] + self.config['pathexec'], 0o775)
 
     def create_config(self, file, mounted, recovered, device=''):
         """
@@ -184,19 +209,21 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         from argparse import ArgumentParser, RawTextHelpFormatter
         try:
             parser = ArgumentParser(prog=self.config['appname'],
-                                    usage='python3 ' + self.config['appscript'] + ' [command]',
+                                    usage='python3 ' + self.config['appscript'] + ' {device | start | credits}',
                                     description=self.config['appname'] + ' is a script to perform Grub recovery '
                                     + 'on Linux.',
                                     formatter_class=RawTextHelpFormatter,
                                     epilog="See you later!!")
-            parser.add_argument('command', action='store', metavar="[command]",
+            parser.add_argument('command', action='store', metavar="{device | start | credits}",
                                 type=str,
-                                help="""
+                                help=f"""
 device     Performs the partition search in the distribution to be
            recovered, and the devices to install Grub.
 
 start      It really starts the Grub recovery.
            Note: First you have to execute the "device" option.
+
+credits    Print the {self.config['appname']} credits.
                                          """)
             args = parser.parse_args()
             return args
@@ -239,7 +266,7 @@ start      It really starts the Grub recovery.
         while True:
             try:
                 # For non-beta version.
-                # 2: {self.config['crypto_type'].title().replace('_', ' (')})
+                # Option 2 -> 2: {self.config['crypto_type'].title().replace('_', ' (')})
                 choice = input(f"""
 1: Ext3/Ext4
 2: Quit
@@ -327,9 +354,9 @@ start      It really starts the Grub recovery.
                                                 '\033[36m"recover-grub start"\033[93m to start Grub recovery.')
                                 # Enter in Chroot.
                                 check_call(['chroot', self.config['mount_dir'], '/bin/bash'])
-                                # Exit chroot.
+                                # Runs after exiting the chroot.
                                 check_output(['rm', '-f', self.config['mount_dir'] + self.config['appconfig']])
-                                check_output(['rm', '-f', self.config['mount_dir'] + EXEC])
+                                check_output(['rm', '-f', self.config['mount_dir'] + self.config['pathexec']])
                                 check_output(['umount', '-R', self.config["mount_dir"]])
                                 self.printColor('print', self._warning, 'Now run the "reboot" command. Bye.')
                             except Exception as err:
@@ -418,6 +445,9 @@ start      It really starts the Grub recovery.
                 self.printColor('print', self._warning,
                                 'You must specify the device and partition before starting recovery. Run ' +
                                 '"recover-grub device"')
+
+        elif self.menu_args().command == 'credits':
+            self.credits()
 
 
 if __name__ == '__main__':
