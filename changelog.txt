@@ -9,9 +9,11 @@ CHANGELOG - Portuguese - Brazil
 ### Alterado
 - Deixando script com módulos nativo.
 - Otimizando o código {Build 1}.
+- Removendo verificação da distribuição pelo 'platform.dist()'
 ### Adicionado
 - Criando classe para UI.
 - Criando texto gráfico de welcome.
+- Nova função get_distro()
 
 ## [3.0.1] (Beta) - Sem prévia
 ### Adicionado

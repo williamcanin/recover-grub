@@ -213,13 +213,13 @@ start      It really starts the Grub recovery.
         out = check_output(command, shell=True, universal_newlines=True).split()
         return out
 
-    def get_system(self, p_type):
+    def get_system(self, type):
         """
             A function gets an argument to return what type of system the machine is using. If the argument is
             'OS', it will return Windows, Linux or OSX, and the argument is 'distro', it will return the Linux
             distribution being used.
         """
-        if p_type.lower() == 'os':
+        if type.lower() == 'os':
             from sys import platform
             if platform == "linux" or platform == "linux2":
                 check_sys = 'linux'
@@ -227,9 +227,6 @@ start      It really starts the Grub recovery.
                 check_sys = str(self.printColor('print', self._error,
                                                 'System not compatible with this script. Use only Linux.'))
                 exit(1)
-        elif p_type.lower() == 'distro':
-            import platform
-            check_sys = str(platform.dist()[0])
         else:
             raise Exception('Error check system.')
         return check_sys
@@ -269,6 +266,16 @@ start      It really starts the Grub recovery.
 
         return type_partition
 
+    def get_distro(self, os_release, key):
+        """
+            Function to return the Linux distribution data.
+        """
+        from subprocess import check_output
+        content_os_release = check_output(['cat', os_release], universal_newlines=True)
+        dict_os_release = dict([i.split('=') for i in content_os_release.strip().split('\n')])
+        distro_name = dict_os_release[key].replace('"', '')
+        return distro_name
+
     def mount_partition(self, device_type):
         """
             Function to mount the partition to be recovered by Grub.
@@ -280,6 +287,7 @@ start      It really starts the Grub recovery.
             shell_command = '''blkid | grep ''' + device_type + '''| awk '{print $1}' | cut -d":" -f1'''
             devices_output = check_output(shell_command, shell=True,
                                           universal_newlines=True).splitlines()
+            distro_current = self.get_distro('/etc/os-release', 'NAME')
         except Exception as err:
             return self.printColor('except', self._error, 'There was an error using superuser command.', err)
         except KeyboardInterrupt as ki:
@@ -296,14 +304,13 @@ start      It really starts the Grub recovery.
                 else:
                     check_output(['mount', partition, self.config["mount_dir"]])
                     if isfile(self.config["mount_dir"] + '/etc/os-release'):
-                        content_os_release = check_output(['cat', self.config["mount_dir"] + '/etc/os-release'],
-                                                          universal_newlines=True)
-                        dict_os_release = dict([i.split('=') for i in content_os_release.strip().split('\n')])
-                        distro_name = dict_os_release['NAME'].replace('"', '')
-                        distro_pretty_name = dict_os_release['PRETTY_NAME'].replace('"', '')
 
-                        if distro_name == self.get_system('distro'):
+                        distro_monted = self.get_distro(self.config["mount_dir"] + '/etc/os-release', 'NAME')
+
+                        if distro_monted == distro_current:
                             try:
+                                distro_pretty_name = self.get_distro(self.config["mount_dir"] +
+                                                                     '/etc/os-release', 'PRETTY_NAME')
                                 check_output(['mount', '--bind', '/dev', self.config["mount_dir"] + '/dev'])
                                 check_output(['mount', '--bind', '/dev/pts', self.config["mount_dir"] +
                                              '/dev/pts'])
@@ -324,11 +331,12 @@ start      It really starts the Grub recovery.
                                 check_output(['rm', '-f', self.config['mount_dir'] + self.config['appconfig']])
                                 check_output(['rm', '-f', self.config['mount_dir'] + EXEC])
                                 check_output(['umount', '-R', self.config["mount_dir"]])
+                                self.printColor('print', self._warning, 'Now run the "reboot" command. Bye.')
                             except Exception as err:
                                 self.printColor('except', self._warning, 'Error in performing assemblies.', err)
                                 check_output(['umount', '-R', self.config["mount_dir"]])
                             break
-                        elif distro_name != self.get_system('distro'):
+                        elif distro_monted != distro_current:
                             check_output(['umount', self.config["mount_dir"]])
                             continue
                     else:
