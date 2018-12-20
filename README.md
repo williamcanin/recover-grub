@@ -3,7 +3,7 @@ Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/
 
 # Recover Grub <img src="https://raw.githubusercontent.com/williamcanin/recover-grub/master/logotype/recover-grub-icon.png" alt="Recover Grub Logotype" width="7%" height="7%"/>
 
-***VERSION - 3.0.0 (Beta)***
+***VERSION - 3.0.1 (Beta)***
 
 
 
