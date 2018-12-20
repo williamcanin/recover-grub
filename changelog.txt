@@ -16,7 +16,7 @@ CHANGELOG - Portuguese - Brazil
 [x] Nova função get_distro()
 [x] Função de creditos.
 
-## [3.0.1] - Sem prévia
+## [3.0.1] - 2018-12-20
 ### Adicionado
 [x] Btrfs na opção de menu.
 [x] Verificação de dispositivos escolhidos pelo usuário existem.
