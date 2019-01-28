@@ -1,4 +1,9 @@
-deploy
-notes
+## Folders
+/**/*/__pycache__
+env
 temp
+.vscode
+
+## Files
 /**/*.json
+/**/*.pyc

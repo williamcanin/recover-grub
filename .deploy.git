@@ -1,0 +1,29 @@
+#!/bin/bash
+
+VERSION="All"
+BRANCH="master"
+REMOTE_ADDR="git@github.com:williamcanin/recover-grub.git"
+REMOTE_ADDR_ENABLE="yes"
+AUTOMATIC_COMMIT="yes"
+
+if [[ "$REMOTE_ADDR_ENABLE" == "no" ]]; then
+  git init
+  git remote add origin $REMOTE_ADDR
+fi
+
+git add .
+
+if [[ $AUTOMATIC_COMMIT == "yes" ]]; then
+  git commit -m "$(date)"
+  git push origin $BRANCH
+  sed -i "s|^REMOTE_ADDR_ENABLE=.*|REMOTE_ADDR_ENABLE=\"yes\"|g" $0
+  printf "\nDone.\n\n"
+else
+  printf "\nCommit message\n> "
+  read COMMIT_MESSAGE
+  git commit -m "$COMMIT_MESSAGE - Version $VERSION"
+  git push origin $BRANCH
+
+  sed -i "s|^REMOTE_ADDR_ENABLE=.*|REMOTE_ADDR_ENABLE=\"yes\"|g" $0
+  printf "\nDone.\n\n"
+fi

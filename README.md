@@ -1,9 +1,9 @@
-Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/master/README-PtBr.md).
+Leia em [Português - Brasil](https://github.com/williamcanin/recover_grub.py/blob/master/README-PtBr.md).
 
 
-# Recover Grub <img src="https://raw.githubusercontent.com/williamcanin/recover-grub/master/logotype/recover-grub-icon.png" alt="Recover Grub Logotype" width="7%" height="7%"/>
+# Recover Grub <img src="https://raw.githubusercontent.com/williamcanin/recover_grub.py/master/logotype/recover_grub.py-icon.png" alt="Recover Grub Logotype" width="7%" height="7%"/>
 
-***VERSION - 3.0.1***
+***VERSION - 3.1.0***
 
 
 
@@ -30,34 +30,34 @@ Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/
       "Recover Grub". To do this, execute the command below:
 
   ~~~shell
-  # curl -L git.io/recover-grub -o recover-grub
+  # curl -L git.io/recover_grub.py -o recover_grub.py
   ~~~
 
   ou
 
   ~~~shell
-  # wget git.io/recover-grub
+  # wget git.io/recover_grub.py
   ~~~
 
-  **D** -  With "Recover Grub" in hand, the next step is to give permission for the file
-       "recover-grub" and choose the device on the machine where the distribution
+  **C** -  With "Recover Grub" in hand, the next step is to give permission for the file
+       "recover_grub.py" and choose the device on the machine where the distribution
        Linux is installed.
 
   ~~~shell
-  # chmod +x recover-grub
+  # chmod +x recover_grub.py
   ~~~
   ~~~shell
-  # ./recover-grub device
+  # ./recover_grub.py device
   ~~~
 
-  **E** - After choosing, the "Recover Grub" will enter the chroot section
+  **D** - After choosing, the "Recover Grub" will enter the chroot section
       for you to run the Grub recovery command. The command is:
 
   ~~~shell
-  # recover-grub start
+  # recover_grub.py start
   ~~~
 
-  **F** - The "Recover Grub" is very intuitive, after finishing, it will say to
+  **E** - The "Recover Grub" is very intuitive, after finishing, it will say to
       quit the chroot with the "exit" command and then
       restart the machine.
 
@@ -76,4 +76,4 @@ Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/
   https://opensource.org/licenses/MIT
 
 
- ***2018 © Recover Grub. William C. Canin. All rights reserved. ®***
+ ***since 2016 © Recover Grub. William C. Canin. All rights reserved. ®***

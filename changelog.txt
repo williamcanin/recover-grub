@@ -21,13 +21,25 @@ CHANGELOG - Portuguese - Brazil
 [x] Btrfs na opção de menu.
 [x] Verificação de dispositivos escolhidos pelo usuário existem.
 
-## [3.1.2] - Sem prévia
+## [3.1.0] - 28-01-2019
+### Alterado
+[x] Alterando nome do script para recover_grub.py
+[x] Nova url para script no 'git.io'.
+### Adicionado
+[x] Nova estrutura de pastas.
+[x] Script para tests.
+
+## [3.1.1] - Sem prévia
 ### Adicionado
 [] Opção para partições criptografadas (LUKS)
 
+## [3.1.2] - Sem prévia
+### Alterado
+[] Path - Melhoramento da estrutura do código.
+
 ## [4.0.0] - Sem prévia
 ### Alterado
-[] Nova forma de executar Recover Grub. (Ex: recover-grub {--device|--start|--credits} run)
+[] Nova forma de executar Recover Grub. (Ex: recover_grub {--device|--start|--credits} run)
   Comparação de script:
   if self.menu_args().credits == 'run':
         self.credits()

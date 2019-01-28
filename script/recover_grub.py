@@ -27,6 +27,9 @@
 
 # ******************************************************************************
 
+# Import for Debugging
+# from pdb import set_trace
+
 
 class RecoverGrub_UI:
     def __init__(self):
@@ -39,17 +42,18 @@ class RecoverGrub_UI:
 
         # Design text using figlet. Install: $ sudo apt install figlet
         # Usage: $ figlet <Text>
-        print("""
+        print(f"""
 \033[36mWelcome to\033[0m
-\033[93m ____                               ____            _
+\033[93m
+ ____                               ____            _
 |  _ \ ___  ___ _____   _____ _ __ / ___|_ __ _   _| |__
 | |_) / _ \/ __/ _ \ \ / / _ \ '__| |  _| '__| | | | '_ \\
 |  _ <  __/ (_| (_) \ V /  __/ |  | |_| | |  | |_| | |_) |
 |_| \_\___|\___\___/ \_/ \___|_|   \____|_|   \__,_|_.__/\033[0m
-                             \xa9 since 2016 - v{}
-        """.format(self.config['appversion']))
+                                    \xa9 since 2016 - v{self.config['appversion']}
+        """)
 
-    def printColor(self, type, color, message, options='') -> str:
+    def printColor(self, type, color, message, options: object = ''):
         if type == 'print':
             return print(f'{color}{message}' + self._end)
         elif type == 'input':
@@ -60,19 +64,14 @@ class RecoverGrub_UI:
             raise print('Error in first argument in "PrintColor"')
 
 
-class RecoverGrub_Start:
-    def __init__(self):
-        print('Ok.')
-
-
 class RecoverGrub_Engine(RecoverGrub_UI):
 
     config = {'appname': 'Recover Grub',
-              'appscript': 'recover-grub',
+              'appscript': 'recover_grub.py',
               'appconfig': '/etc/recover-grub.json',
               'execdir': '/usr/local/bin/',
               'python_version': 3,
-              'appversion': '3.0.1',
+              'appversion': '3.1.2',
               'mount_dir': '/mnt',
               'name_crypto_open': 'filesystem2',
               'crypto_type': 'crypto_LUKS',
@@ -117,7 +116,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                             self.config['appname'] + ' can only be run with superuser (root). Aborted!')
             exit(0)
 
-    def select_device(self) -> str:
+    def select_device(self):
         """
             A function that converses with the user to make the selection of the devices of the machine, for
             the assembly.
@@ -179,18 +178,18 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         with open(file, 'w') as outfile:
             dump(data, outfile)
 
-    def read_config(self, pathfile):
+    def read_config(self, path_file: object):
         """
             Function to read .json configuration file.
         """
         from json import load
         from os.path import isfile
-        if isfile(pathfile):
-            with open(pathfile) as outfile:
+        if isfile(path_file):
+            with open(path_file) as outfile:
                 data = load(outfile)
         return data
 
-    def python_version_required(self, p_version: int):
+    def python_version_required(self, p_version):
         """
             Function to check the version of Python that this script uses.
         """
@@ -198,6 +197,8 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         try:
             if sys.version_info[0] < p_version:
                 raise Exception('Must be using Python {}'.format(p_version))
+            else:
+                return True
         except Exception as err:
             print('Error!', err)
             exit(1)
@@ -231,6 +232,7 @@ credits    Print the {self.config['appname']} credits.
         except Exception as err:
             return self.printColor('except', self._warning, 'Error in passing arguments..', err)
 
+    # @property
     def get_device(self):
         """
             A function that returns a list of SD / HS / SSD devices on the machine.
@@ -243,13 +245,13 @@ credits    Print the {self.config['appname']} credits.
         except Exception as err:
             return self.printColor('except', self._warning, 'Unable to pick up the devices.', err)
 
-    def get_system(self, type):
+    def get_system(self, type_):
         """
             A function gets an argument to return what type of system the machine is using. If the argument is
             'OS', it will return Windows, Linux or OSX, and the argument is 'distro', it will return the Linux
             distribution being used.
         """
-        if type.lower() == 'os':
+        if type_.lower() == 'os':
             from sys import platform
             if platform == "linux" or platform == "linux2":
                 check_sys = 'linux'
@@ -275,7 +277,7 @@ credits    Print the {self.config['appname']} credits.
 2: Btrfs
 3: Quit
 
-\033[95m→ Please enter your choice (1-2): \033[0m""")
+\033[95m→ Please enter your choice [1-2]: \033[0m""")
 
                 if choice == "1":
                     type_partition = 'ext'
@@ -418,7 +420,7 @@ credits    Print the {self.config['appname']} credits.
 
             if not isfile(self.config['appconfig']):
                 self.create_config(self.config['appconfig'], 'false', 'false',
-                                   self.select_device())
+                                   self.select_device)
 
             if self.read_config(self.config['appconfig'])['status']['mounted'] == 'true':
                 self.printColor('print', self._warning,
