@@ -1,7 +1,7 @@
 #!/bin/bash
 
 VERSION="All"
-BRANCH="master"
+BRANCH="dev3.1.0"
 REMOTE_ADDR="git@github.com:williamcanin/recover-grub.git"
 REMOTE_ADDR_ENABLE="yes"
 AUTOMATIC_COMMIT="yes"
