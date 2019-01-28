@@ -70,6 +70,13 @@ Leia em [Português - Brasil](https://github.com/williamcanin/recover_grub.py/bl
   # reboot
   ~~~
 
+**[ DEVELOPER ]**
+
+  The file to run tests can be found in the **tests** folder. The file
+  **runtests.sh** will run the "Recover Grub" tests (*script/recover_grub.py*).
+  
+  The Python module used for testing is the **unittest**.
+
 **[ LICENSE ]**
 
   MIT License (MIT)

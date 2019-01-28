@@ -70,6 +70,13 @@ Read in [English](https://github.com/williamcanin/recover_grub.py/blob/master/RE
   # reboot
   ~~~
 
+**[ DESENVOLVEDOR ]**
+
+  O arquivo para executar testes pode ser encontrados na pasta **tests**. O arquivo
+  **runtests.sh** irá executar os testes do "Recover Grub" (*script/recover_grub.py*).
+
+  O módulo Python usado para os testes é o **unittest**.
+
 **[ LICENÇA ]**
 
   MIT License (MIT)
