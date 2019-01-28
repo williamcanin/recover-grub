@@ -1,6 +1,6 @@
 Read in [English](https://github.com/williamcanin/recover_grub.py/blob/master/README.md).
 
-# Recover Grub <img src="https://raw.githubusercontent.com/williamcanin/recover_grub.py/master/logotype/recover_grub.py-icon.png" alt="Recover Grub Logotype" width="7%" height="7%"/>
+# Recover Grub <img src="https://raw.githubusercontent.com/williamcanin/recover-grub/master/logotype/recover-grub-icon.png" alt="Recover Grub Logotype" width="7%" height="7%"/>
 
 ***VERSÃO - 3.1.0***
 
