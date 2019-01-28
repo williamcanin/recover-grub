@@ -1,4 +1,4 @@
-Read in [English](https://github.com/williamcanin/recover_grub.py/blob/master/README.md).
+Read in [English](https://github.com/williamcanin/recover-grub/blob/master/README.md).
 
 # Recover Grub <img src="https://raw.githubusercontent.com/williamcanin/recover-grub/master/logotype/recover-grub-icon.png" alt="Recover Grub Logotype" width="7%" height="7%"/>
 
