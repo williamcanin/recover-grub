@@ -24,7 +24,7 @@ CHANGELOG - Portuguese - Brazil
 ## [3.1.0] - 28-01-2019
 ### Alterado
 [x] Alterando nome do script para recover_grub.py
-[x] Nova url para script no 'git.io'.
+[x] Nova url para script recover_grub.py no 'git.io'.
 ### Adicionado
 [x] Nova estrutura de pastas.
 [x] Script para tests.
