@@ -71,7 +71,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
               'appconfig': '/etc/recover-grub.json',
               'execdir': '/usr/local/bin/',
               'python_version': 3,
-              'appversion': '3.1.2',
+              'appversion': '3.1.0',
               'mount_dir': '/mnt',
               'name_crypto_open': 'filesystem2',
               'crypto_type': 'crypto_LUKS',
