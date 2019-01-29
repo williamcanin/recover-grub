@@ -2,7 +2,7 @@
 
 from script.recover_grub import RecoverGrub_Engine
 from unittest import TestCase, main
-from pdb import set_trace
+# from pdb import set_trace
 
 
 class Tests_RecoverGrub(TestCase):
@@ -20,15 +20,14 @@ class Tests_RecoverGrub(TestCase):
         self.assertEqual(self.engine.python_version_required(3), True)
 
     def test_select_type_partition(self):
-        self.assertEqual(self.engine.select_type_partition(), 'ext')
-        # self.assertEqual(self.engine.select_type_partition(), 'None')
+        self.assertIn(self.engine.select_type_partition(), ['ext', 'None'])
 
     def test_get_distro(self):
         distro_current = self.engine.get_distro('/etc/os-release', 'NAME')
         self.assertEqual(distro_current, 'Ubuntu')
 
     def test_select_device(self):
-        self.assertEqual(self.engine.select_device(), '/dev/sda')
+        self.assertIn(self.engine.select_device(), ['/dev/sda', 'None'])
 
     def test_verify_user(self):
         self.assertFalse(self.engine.verify_user(0))
