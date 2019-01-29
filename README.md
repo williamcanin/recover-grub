@@ -1,27 +1,27 @@
+
+# Recover Grub
+
+![An image](https://raw.githubusercontent.com/williamcanin/recover-grub/master/logo/recover-grub-64x64.png)
+
 Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/master/README-PtBr.md).
-
-
-# Recover Grub <img src="https://raw.githubusercontent.com/williamcanin/recover-grub/master/logotype/recover-grub-icon.png" alt="Recover Grub Logotype" width="7%" height="7%"/>
 
 ***VERSION - 3.1.0***
 
-
-
-**[ ABOUT ]**
+## [ ABOUT ]
 
   "Recover Grub" is a Python script that allows the recovery of Grub
    Linux in a more automatic way, not needing the user
    remember and enter complicated commands.
 
-**[ REQUIREMENTS ]**
+## [ REQUIREMENTS ]
 
-  - Python 3.+
+  > Python 3.+
 
-**[ COMPATIBILITY ]**
+## [ COMPATIBILITY ]
 
   Linux systems.
 
-**[ USAGE ]**
+## [ USAGE ]
 
   **A** - Insert the CD / DVD (or Bootable Pendrive) from a Linux distribution
       on the machine and boot.
@@ -46,6 +46,7 @@ Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/
   ~~~shell
   # chmod +x recover_grub.py
   ~~~
+
   ~~~shell
   # ./recover_grub.py device
   ~~~
@@ -66,21 +67,36 @@ Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/
   ~~~shell
   # exit
   ~~~
+
   ~~~shell
   # reboot
   ~~~
 
-**[ DEVELOPER ]**
+## [ DEVELOPER ]
+
+  **Preparing machine for development:**
+
+  A - Create a virtual machine:
+
+    ~~~shell
+    $ python3 -m env
+    ~~~
+  
+  B - Enable virtual machine:
+
+    ~~~shell
+    $ . env/bin/activate
+    ~~~
+
+  **Tests:**
 
   The file to run tests can be found in the **tests** folder. The file
   **runtests.sh** will run the "Recover Grub" tests (*script/recover_grub.py*).
   
   The Python module used for testing is the **unittest**.
 
-**[ LICENSE ]**
+## [ LICENSE ]
 
-  MIT License (MIT)
-  https://opensource.org/licenses/MIT
-
+  MIT License (MIT) <https://opensource.org/licenses/MIT>
 
  ***since 2016 © Recover Grub. William C. Canin. All rights reserved. ®***

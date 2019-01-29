@@ -11,13 +11,11 @@
 # URL Script: http://git.io/recover-grub
 
 # Tools used:
-#   Atom Editor:
-#       - wrap-guide (Preferred Line Lenght: 115)
-#       - atom-beautify
-#       - autocomplete-python
-#       - MagicPython
+#   VS Code:
+#       - wrap-guide (Preferred Line Lenght: 120)
 #       - linter
-#       - linter-flake8 (Max Line Length: 115)
+#       - linter-flake8 (Max Line Length: 120)
+#       -- ignore="W605"
 
 # Author: William C. Canin
 #   Contacts:
@@ -27,8 +25,8 @@
 
 # ******************************************************************************
 
-# Import for Debugging
-from pdb import set_trace
+# # Import for Debugging
+# from pdb import set_trace
 
 
 class RecoverGrub_UI:
@@ -75,12 +73,10 @@ class RecoverGrub_Engine(RecoverGrub_UI):
               'mount_dir': '/mnt',
               'name_crypto_open': 'filesystem2',
               'crypto_type': 'crypto_LUKS',
-              'author': {
-                        'name': 'William da Costa Canin',
-                        'email': 'william.costa.canin@gmail.com',
-                        'website': 'https://williamcanin.me',
-                        'github': 'https://github.com/williamcanin'
-                        }
+              'author': {'name': 'William da Costa Canin',
+                         'email': 'william.costa.canin@gmail.com',
+                         'website': 'https://williamcanin.me',
+                         'github': 'https://github.com/williamcanin'}
               }
 
     config.update({'pathexec': config['execdir'] + config['appscript']})
@@ -131,9 +127,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
                     print(f'{index}: {item}')
                 index_quit = index + 1
                 print(f'{index_quit}: Quit\n')
-
-                choice = self.printColor('input', self._reply, 'Please enter your choice (1-' +
-                                         str(index + 1) + '): ')
+                choice = self.printColor('input', self._reply, 'Please enter your choice (1-' + str(index + 1) + '): ')
                 if not choice.isdigit():
                     self.printColor('print', self._error, 'Enter numbers only')
                     continue
@@ -168,14 +162,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
             Function to create .json configuration file.
         """
         from json import dump
-        data = {
-                "status":
-                {
-                    "mounted": mounted,
-                    "recovered": recovered
-                },
-                "device": device
-                }
+        data = {"status": {"mounted": mounted, "recovered": recovered}, "device": device}
         with open(file, 'w') as outfile:
             dump(data, outfile)
 
@@ -212,8 +199,8 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         try:
             parser = ArgumentParser(prog=self.config['appname'],
                                     usage='python3 ' + self.config['appscript'] + ' {device | start | credits | -h}',
-                                    description=self.config['appname'] + ' is a script to perform Grub recovery '
-                                    + 'on Linux.',
+                                    description=self.config['appname'] + ' is a script to perform Grub recovery \
+                                    on Linux.',
                                     formatter_class=RawTextHelpFormatter,
                                     epilog="See you later!!")
             parser.add_argument('command', action='store', metavar="{device | start | credits | -h}",
@@ -341,10 +328,10 @@ credits    Print the {self.config['appname']} credits.
         if device_type == 'ext' or device_type == 'btrfs':
             for partition in devices_output:
                 if isfile(self.config["mount_dir"] + '/etc/os-release'):
-                    self.printColor('print', self._warning, 'A mounted partition already exists in ' +
-                                    self.config["mount_dir"] + '. Use the "sudo umount ' +
-                                    self.config["mount_dir"] + '" command to unmount, and re-run the ' +
-                                    self.config["appname"] + '.')
+                    self.printColor('print', self._warning, 'A mounted partition already exists in \
+                                    ' + self.config["mount_dir"] + '. Use the "sudo umount \
+                                    ' + self.config["mount_dir"] + '" command to unmount, and re-run the \
+                                    ' + self.config["appname"] + '.')
                     break
                 else:
                     check_output(['mount', partition, self.config["mount_dir"]])
@@ -352,22 +339,20 @@ credits    Print the {self.config['appname']} credits.
                         distro_monted = self.get_distro(self.config["mount_dir"] + '/etc/os-release', 'NAME')
                         if distro_monted == distro_current:
                             try:
-                                distro_pretty_name = self.get_distro(self.config["mount_dir"] +
-                                                                     '/etc/os-release', 'PRETTY_NAME')
+                                distro_pretty_name = self.get_distro(self.config["mount_dir"] + '/etc/os-release',
+                                                                     'PRETTY_NAME')
                                 check_output(['mount', '--bind', '/dev', self.config["mount_dir"] + '/dev'])
-                                check_output(['mount', '--bind', '/dev/pts', self.config["mount_dir"] +
-                                             '/dev/pts'])
+                                check_output(['mount', '--bind', '/dev/pts', self.config["mount_dir"] + '/dev/pts'])
                                 check_output(['mount', '--bind', '/proc', self.config["mount_dir"] + '/proc'])
                                 check_output(['mount', '--bind', '/sys', self.config["mount_dir"] + '/sys'])
-                                self.printColor('print', self._okgreen, 'Partition containing "' +
-                                                distro_pretty_name + '" was found and mounted on "' +
-                                                self.config['mount_dir'] + '".')
-                                self.create_config(self.config['mount_dir'] +
-                                                   self.config['appconfig'], 'true', 'false',
+                                self.printColor('print', self._okgreen, 'Partition containing " \
+                                                ' + distro_pretty_name + '" was found and mounted on " \
+                                                ' + self.config['mount_dir'] + '".')
+                                self.create_config(self.config['mount_dir'] + self.config['appconfig'], 'true', 'false',
                                                    self.read_config(self.config['appconfig'])['device'])
                                 self.copyfiles('exec')
-                                self.printColor('print', self._warning, 'You are now in the chroot. Run ' +
-                                                '\033[36m"recover-grub start"\033[93m to start Grub recovery.')
+                                self.printColor('print', self._warning, 'You are now in the chroot. Run \
+                                                \033[36m"recover-grub start"\033[93m to start Grub recovery.')
                                 # Enter in Chroot.
                                 check_call(['chroot', self.config['mount_dir'], '/bin/bash'])
                                 # Runs after exiting the chroot.
@@ -429,8 +414,8 @@ credits    Print the {self.config['appname']} credits.
 
                 if self.read_config(self.config['appconfig'])['device'] == 'None':
                     self.printColor('print', self._error,
-                                    'You did not specify the "device". There is no way to go. Repeat the steps ' +
-                                    'again with the command "recover-grub device".')
+                                    'You did not specify the "device". There is no way to go. Repeat the steps \
+                                    again with the command "recover-grub device".')
                     check_output(['rm', '-f', self.config['appconfig']])
                     exit(1)
 
@@ -441,17 +426,16 @@ credits    Print the {self.config['appname']} credits.
             if isfile(self.config['appconfig']):
                 if self.read_config(self.config['appconfig'])['status']['mounted'] == 'true':
                     if self.read_config(self.config['appconfig'])['status']['recovered'] == 'true':
-                        self.printColor('print', self._warning,
-                                        'You have already made the recovery in this session, if you want to do ' +
-                                        'again skirt with command "exit".')
+                        self.printColor('print', self._warning, 'You have already made the recovery in this session, if \
+                                        you want to do again skirt with command "exit".')
                         exit(0)
 
                     self.printColor('print', self._header, 'Starting Grub recovery ...')
                     check_output(['grub-mkconfig', '-o', '/boot/grub/grub.cfg'])
                     check_output(['grub-install', self.read_config(self.config['appconfig'])['device']])
                     self.create_config(self.config['appconfig'], 'true', 'true')
-                    self.printColor('print', self._okgreen, 'The Grub recovery was completed. Run the "exit" '
-                                    + 'command to exit the chroot.')
+                    self.printColor('print', self._okgreen, 'The Grub recovery was completed. Run the "exit" \
+                                     command to exit the chroot.')
 
                 else:
                     self.printColor('print', self._warning,
@@ -459,8 +443,8 @@ credits    Print the {self.config['appname']} credits.
 
             else:
                 self.printColor('print', self._warning,
-                                'You must specify the device and partition before starting recovery. Run ' +
-                                '"recover-grub device"')
+                                'You must specify the device and partition before starting recovery. Run \
+                                "recover-grub device"')
 
         elif self.menu_args().command == 'credits':
             self.credits()

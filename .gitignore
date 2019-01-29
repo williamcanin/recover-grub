@@ -3,7 +3,6 @@
 env
 temp
 tests/etc
-.vscode
 
 ## Files
 /**/*.json

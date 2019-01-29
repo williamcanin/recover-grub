@@ -1,27 +1,26 @@
-Read in [English](https://github.com/williamcanin/recover-grub/blob/master/README.md).
+# Recover Grub
 
-# Recover Grub <img src="https://raw.githubusercontent.com/williamcanin/recover-grub/master/logotype/recover-grub-icon.png" alt="Recover Grub Logotype" width="7%" height="7%"/>
+![An image](https://raw.githubusercontent.com/williamcanin/recover-grub/master/logo/recover-grub-64x64.png)
 
 ***VERSÃO - 3.1.0***
 
+Read in [English](https://github.com/williamcanin/recover-grub/blob/master/README.md).
 
-
-**[ SOBRE ]**
+## [ SOBRE ]
 
   "Recover Grub" é um script em Python que permite a recuperação do Grub
   Linux de uma forma mais automática, não precisando o usuário
   lembrar e digitar comandos complicados.
 
+## [ REQUERIMENTOS]
 
-**[ REQUERIMENTOS]**
+  > Python 3.+
 
-  - Python 3.+
-
-**[ COMPATIBILIDADE ]**
+## [ COMPATIBILIDADE ]
 
   Sistemas Linux.
 
-**[ USANDO ]**
+## [ USANDO ]
 
   **A** - Insira o CD/DVD (ou Pendrive Bootável) de uma distribuição Linux
       na máquina e dê boot.
@@ -46,6 +45,7 @@ Read in [English](https://github.com/williamcanin/recover-grub/blob/master/READM
   ~~~shell
   # chmod +x recover_grub.py
   ~~~
+
   ~~~shell
   # ./recover_grub.py device
   ~~~
@@ -66,21 +66,36 @@ Read in [English](https://github.com/williamcanin/recover-grub/blob/master/READM
   ~~~shell
   # exit
   ~~~
+
   ~~~shell
   # reboot
   ~~~
 
-**[ DESENVOLVEDOR ]**
+## [ DESENVOLVEDOR ]
+
+  **Preparando máquina para desenvolvimento:**
+
+  A - Crie uma máquina virtual:
+
+    ~~~shell
+    $ python3 -m env
+    ~~~
+  
+  B - Ativar máquina virtual:
+
+    ~~~shell
+    $ . env/bin/activate
+    ~~~
+
+  **Testes:**
 
   O arquivo para executar testes pode ser encontrados na pasta **tests**. O arquivo
   **runtests.sh** irá executar os testes do "Recover Grub" (*script/recover_grub.py*).
 
   O módulo Python usado para os testes é o **unittest**.
 
-**[ LICENÇA ]**
+## [ LICENÇA ]
 
-  MIT License (MIT)
-  https://opensource.org/licenses/MIT
-
+  MIT License (MIT) <https://opensource.org/licenses/MIT>
 
  *** desde 2016 © Recover Grub. William C. Canin. All rights reserved. ®***
