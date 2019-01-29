@@ -1,7 +1,5 @@
 
-# Recover Grub
-
-![An image](https://raw.githubusercontent.com/williamcanin/recover-grub/master/logo/recover-grub-64x64.png){:style="float: right;margin-right: 7px;margin-top: 7px;"}
+# Recover Grub ![An image](https://raw.githubusercontent.com/williamcanin/recover-grub/master/logo/recover-grub-64x64.png)
 
 Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/master/README-PtBr.md).
 
