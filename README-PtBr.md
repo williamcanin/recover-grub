@@ -93,6 +93,11 @@ Read in [English](https://github.com/williamcanin/recover-grub/blob/master/READM
 
   O módulo Python usado para os testes é o **unittest**.
 
+  **Deploy:**
+
+  O arquivo **.deploy.git** é um simples shell script para realizar o deploy e merge
+  desse projeto. É intuitivo.
+
 ## [ LICENÇA ]
 
   MIT License (MIT) <https://opensource.org/licenses/MIT>

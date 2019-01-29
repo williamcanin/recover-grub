@@ -94,6 +94,10 @@ Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/
   
   The Python module used for testing is the **unittest**.
 
+  **Deploy:**
+
+  The file **.deploy.git** is a simple shell script to perform the deploy and merge of this project. It's intuitive.
+
 ## [ LICENSE ]
 
   MIT License (MIT) <https://opensource.org/licenses/MIT>
