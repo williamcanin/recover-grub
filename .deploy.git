@@ -51,7 +51,7 @@ function commit(){
             git commit -m "$(date)"
         else
             git add .
-            printf "\nCommit message: "
+            printf "\nCommit message > "
             read commit_msg
             git commit -m "$commit_msg - $(date)"
         fi
