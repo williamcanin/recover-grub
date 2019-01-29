@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 
-# BRANCH="$(git branch | grep \* | cut -d ' ' -f2)"
-# REMOTE_ADDR="git@github.com:williamcanin/recover-grub.git"
-# REMOTE_ADDR_ENABLE="yes"
+# Information: Simple shell script for deploy in Github.
+# Author: William C. Canin
+
+# Variables global.
+#
 __auto_commit__="yes"
 
+
+# Functions
+#
 function add_init(){
     if [[ ! -d ".git" ]]; then
         git init
@@ -19,6 +24,23 @@ function add_remote(){
         read remote_add
         git remote add origin $remote_add
     fi
+}
+
+
+
+function merge(){
+    printf "\n>>> Perform the merge? (y/n) > "
+    read reply
+    case $reply in
+        y|Y)
+            printf "\nType the branch to merge > "
+            read merge_branch
+            git merge $merge_branch
+        ;;
+        *)
+            printf "\nSorry I did not understand. Merge aborted.\n"
+        ;;
+    esac
 }
 
 function commit(){
@@ -42,29 +64,10 @@ function push(){
     printf "\nDone!"
 }
 
+# Start
+#
 add_init
 add_remote
 commit
+merge
 push
-
-
-
-# if [[ "$REMOTE_ADDR_ENABLE" == "no" ]]; then
-#   git init
-#   git remote add origin $REMOTE_ADDR
-#   sed -i "s|^REMOTE_ADDR_ENABLE=.*|REMOTE_ADDR_ENABLE=\"yes\"|g" $0
-# fi
-
-# git add .
-
-# if [[ $AUTOMATIC_COMMIT == "yes" ]]; then
-#   git commit -m "$(date)"
-#   git push origin $BRANCH
-#   printf "\nDone.\n\n"
-# else
-#   printf "\nCommit message: "
-#   read COMMIT_MESSAGE
-#   git commit -m "$COMMIT_MESSAGE - $(date)"
-#   git push origin $BRANCH
-#   printf "\nDone.\n\n"
-# fi
