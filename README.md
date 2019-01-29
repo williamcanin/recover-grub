@@ -1,7 +1,7 @@
 
 # Recover Grub
 
-![An image](https://raw.githubusercontent.com/williamcanin/recover-grub/master/logo/recover-grub-64x64.png)
+![An image](https://raw.githubusercontent.com/williamcanin/recover-grub/master/logo/recover-grub-64x64.png){:style="float: right;margin-right: 7px;margin-top: 7px;"}
 
 Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/master/README-PtBr.md).
 
@@ -79,6 +79,7 @@ Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/
   A - Create a virtual machine:
 
     ~~~shell
+    $ git clone https://github.com/williamcanin/recover-grub.git; cd recover-grub
     $ python3 -m env
     ~~~
   

@@ -78,6 +78,7 @@ Read in [English](https://github.com/williamcanin/recover-grub/blob/master/READM
   A - Crie uma máquina virtual:
 
     ~~~shell
+    $ git clone https://github.com/williamcanin/recover-grub.git; cd recover-grub
     $ python3 -m env
     ~~~
   
