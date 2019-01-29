@@ -1,29 +1,72 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-VERSION="All"
-BRANCH="$(git branch | grep \* | cut -d ' ' -f2)"
-REMOTE_ADDR="git@github.com:williamcanin/recover-grub.git"
-REMOTE_ADDR_ENABLE="yes"
+# BRANCH="$(git branch | grep \* | cut -d ' ' -f2)"
+# REMOTE_ADDR="git@github.com:williamcanin/recover-grub.git"
+# REMOTE_ADDR_ENABLE="yes"
 AUTOMATIC_COMMIT="yes"
 
-if [[ "$REMOTE_ADDR_ENABLE" == "no" ]]; then
-  git init
-  git remote add origin $REMOTE_ADDR
-fi
+function add_init(){
+    if [[ ! -d ".git" ]]; then
+        git init
+    fi
+}
 
-git add .
+function add_remote(){
+    remote="$(git remote -v | grep push | awk '{print $2}')"
+    if [[ -z $remote ]]; then
+        printf "E.g: git@github.com:<USER>/<REPO>.git"
+        printf "\n>>> Add remote > "
+        read remote_add
+        git remote add origin $remote_add
+    fi
+}
 
-if [[ $AUTOMATIC_COMMIT == "yes" ]]; then
-  git commit -m "$(date)"
-  git push origin $BRANCH
-  sed -i "s|^REMOTE_ADDR_ENABLE=.*|REMOTE_ADDR_ENABLE=\"yes\"|g" $0
-  printf "\nDone.\n\n"
-else
-  printf "\nCommit message\n> "
-  read COMMIT_MESSAGE
-  git commit -m "$COMMIT_MESSAGE - Version $VERSION"
-  git push origin $BRANCH
+function commit_go(){
+    BRANCH="$(git branch | grep \* | cut -d ' ' -f2)"
+    change="$(git diff-index --name-only HEAD --)"
+    if [[ ! -z $change ]]; then
+        if [[ $AUTOMATIC_COMMIT == "yes" ]]; then
+            git add .
+            git commit -m "$(date)"
+            git push origin $BRANCH
+            printf "\nDone.\n\n"        
+        else
+            git add .
+            printf "\nCommit message: "
+            read COMMIT_MESSAGE
+            git commit -m "$COMMIT_MESSAGE - $(date)"
+            git push origin $BRANCH
+            printf "\nDone.\n\n"
+        fi
+    fi
+}
 
-  sed -i "s|^REMOTE_ADDR_ENABLE=.*|REMOTE_ADDR_ENABLE=\"yes\"|g" $0
-  printf "\nDone.\n\n"
-fi
+# function push(){
+
+# }
+
+add_init
+add_remote
+commit_go
+
+
+
+# if [[ "$REMOTE_ADDR_ENABLE" == "no" ]]; then
+#   git init
+#   git remote add origin $REMOTE_ADDR
+#   sed -i "s|^REMOTE_ADDR_ENABLE=.*|REMOTE_ADDR_ENABLE=\"yes\"|g" $0
+# fi
+
+# git add .
+
+# if [[ $AUTOMATIC_COMMIT == "yes" ]]; then
+#   git commit -m "$(date)"
+#   git push origin $BRANCH
+#   printf "\nDone.\n\n"
+# else
+#   printf "\nCommit message: "
+#   read COMMIT_MESSAGE
+#   git commit -m "$COMMIT_MESSAGE - $(date)"
+#   git push origin $BRANCH
+#   printf "\nDone.\n\n"
+# fi
