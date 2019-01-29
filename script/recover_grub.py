@@ -28,7 +28,7 @@
 # ******************************************************************************
 
 # Import for Debugging
-# from pdb import set_trace
+from pdb import set_trace
 
 
 class RecoverGrub_UI:
@@ -89,7 +89,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         from datetime import date
         print(f"""\033[36m
    ---------------------------------------------------------
-  |            {self.config['appname']} - Version {self.config['appversion']}          |
+  |            {self.config['appname']} - Version {self.config['appversion']}                 |
    ---------------------------------------------------------
   |                         Credits:                        |
   |                                                         |
@@ -114,7 +114,8 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         if geteuid() != uid:
             self.printColor('print', self._warning,
                             self.config['appname'] + ' can only be run with superuser (root). Aborted!')
-            exit(0)
+            # exit(0)
+            return False
 
     def select_device(self):
         """
@@ -210,12 +211,12 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         from argparse import ArgumentParser, RawTextHelpFormatter
         try:
             parser = ArgumentParser(prog=self.config['appname'],
-                                    usage='python3 ' + self.config['appscript'] + ' {device | start | credits}',
+                                    usage='python3 ' + self.config['appscript'] + ' {device | start | credits | -h}',
                                     description=self.config['appname'] + ' is a script to perform Grub recovery '
                                     + 'on Linux.',
                                     formatter_class=RawTextHelpFormatter,
                                     epilog="See you later!!")
-            parser.add_argument('command', action='store', metavar="{device | start | credits}",
+            parser.add_argument('command', action='store', metavar="{device | start | credits | -h}",
                                 type=str,
                                 help=f"""
 device     Performs the partition search in the distribution to be
@@ -348,9 +349,7 @@ credits    Print the {self.config['appname']} credits.
                 else:
                     check_output(['mount', partition, self.config["mount_dir"]])
                     if isfile(self.config["mount_dir"] + '/etc/os-release'):
-
                         distro_monted = self.get_distro(self.config["mount_dir"] + '/etc/os-release', 'NAME')
-
                         if distro_monted == distro_current:
                             try:
                                 distro_pretty_name = self.get_distro(self.config["mount_dir"] +
