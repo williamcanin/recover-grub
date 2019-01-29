@@ -1,6 +1,4 @@
-# Recover Grub
-
-![An image](https://raw.githubusercontent.com/williamcanin/recover-grub/master/logo/recover-grub-64x64.png)
+# Recover Grub ![An image](https://raw.githubusercontent.com/williamcanin/recover-grub/master/logo/recover-grub-64x64.png)
 
 ***VERSÃO - 3.1.0***
 
