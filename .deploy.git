@@ -3,7 +3,7 @@
 # BRANCH="$(git branch | grep \* | cut -d ' ' -f2)"
 # REMOTE_ADDR="git@github.com:williamcanin/recover-grub.git"
 # REMOTE_ADDR_ENABLE="yes"
-AUTOMATIC_COMMIT="yes"
+__auto_commit__="yes"
 
 function add_init(){
     if [[ ! -d ".git" ]]; then
@@ -21,33 +21,31 @@ function add_remote(){
     fi
 }
 
-function commit_go(){
-    BRANCH="$(git branch | grep \* | cut -d ' ' -f2)"
+function commit(){
     change="$(git diff-index --name-only HEAD --)"
     if [[ ! -z $change ]]; then
-        if [[ $AUTOMATIC_COMMIT == "yes" ]]; then
+        if [[ $__auto_commit__ == "yes" ]]; then
             git add .
             git commit -m "$(date)"
-            git push origin $BRANCH
-            printf "\nDone.\n\n"        
         else
             git add .
             printf "\nCommit message: "
-            read COMMIT_MESSAGE
-            git commit -m "$COMMIT_MESSAGE - $(date)"
-            git push origin $BRANCH
-            printf "\nDone.\n\n"
+            read commit_msg
+            git commit -m "$commit_msg - $(date)"
         fi
     fi
 }
 
-# function push(){
-
-# }
+function push(){
+    branch="$(git branch | grep \* | cut -d ' ' -f2)"
+    git push origin $branch
+    printf "\nDone!"
+}
 
 add_init
 add_remote
-commit_go
+commit
+push
 
 
 
