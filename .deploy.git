@@ -38,7 +38,7 @@ function merge(){
             git merge $merge_branch
         ;;
         *)
-            printf "\nSorry I did not understand. Merge aborted.\n"
+            printf "Merge aborted.\n"
         ;;
     esac
 }
