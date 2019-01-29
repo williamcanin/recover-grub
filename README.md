@@ -76,16 +76,16 @@ Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/
 
   A - Create a virtual machine:
 
-    ~~~shell
-    $ git clone https://github.com/williamcanin/recover-grub.git; cd recover-grub
-    $ python3 -m env
-    ~~~
-  
+~~~shell
+   git clone https://github.com/williamcanin/recover-grub.git; cd recover-grub
+   python3 -m env
+~~~
+
   B - Enable virtual machine:
 
-    ~~~shell
-    $ . env/bin/activate
-    ~~~
+  ~~~shell
+   . env/bin/activate
+  ~~~
 
   **Tests:**
 
@@ -98,4 +98,4 @@ Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/
 
   MIT License (MIT) <https://opensource.org/licenses/MIT>
 
- ***since 2016 © Recover Grub. William C. Canin. All rights reserved. ®***
+ ***Since 2016 © Recover Grub. William C. Canin. All rights reserved. ®***

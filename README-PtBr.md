@@ -75,16 +75,16 @@ Read in [English](https://github.com/williamcanin/recover-grub/blob/master/READM
 
   A - Crie uma máquina virtual:
 
-    ~~~shell
-    $ git clone https://github.com/williamcanin/recover-grub.git; cd recover-grub
-    $ python3 -m env
-    ~~~
-  
+  ~~~shell
+   git clone https://github.com/williamcanin/recover-grub.git; cd recover-grub
+   python3 -m env
+  ~~~
+
   B - Ativar máquina virtual:
 
-    ~~~shell
-    $ . env/bin/activate
-    ~~~
+  ~~~shell
+   . env/bin/activate
+  ~~~
 
   **Testes:**
 
@@ -97,4 +97,4 @@ Read in [English](https://github.com/williamcanin/recover-grub/blob/master/READM
 
   MIT License (MIT) <https://opensource.org/licenses/MIT>
 
- *** desde 2016 © Recover Grub. William C. Canin. All rights reserved. ®***
+ ***Desde 2016 © Recover Grub. William C. Canin. All rights reserved. ®***
