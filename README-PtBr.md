@@ -1,12 +1,6 @@
 # Recover Grub ![An image](https://raw.githubusercontent.com/williamcanin/recover-grub/master/logo/recover-grub-64x64.png)
 
-![](https://img.shields.io/github/languages/top/williamcanin/recover-grub.svg?colorB=blue&style=flat-square)
-![](https://img.shields.io/github/commit-activity/y/williamcanin/recover-grub.svg?style=flat-square)
-![](https://img.shields.io/github/last-commit/williamcanin/recover-grub.svg?style=flat-square)
-![](https://img.shields.io/github/last-commit/williamcanin/recover-grub/master.svg?style=flat-square)
-![](https://img.shields.io/github/watchers/williamcanin/recover-grub.svg?style=flat-square)
-![](https://img.shields.io/github/stars/williamcanin/recover-grub.svg?style=flat-square)
-![](https://img.shields.io/github/forks/williamcanin/recover-grub.svg?style=flat)
+![](https://img.shields.io/github/languages/top/williamcanin/recover-grub.svg?colorB=blue&style=flat-square) ![](https://img.shields.io/github/commit-activity/y/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/last-commit/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/last-commit/williamcanin/recover-grub/master.svg?style=flat-square) ![](https://img.shields.io/github/watchers/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/stars/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/forks/williamcanin/recover-grub.svg?style=flat)
 
 ***VERSÃO - 3.1.0***
 
