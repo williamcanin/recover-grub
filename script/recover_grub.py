@@ -110,8 +110,8 @@ class RecoverGrub_Engine(RecoverGrub_UI):
         if geteuid() != uid:
             self.printColor('print', self._warning,
                             self.config['appname'] + ' can only be run with superuser (root). Aborted!')
-            # exit(0)
-            return False
+            exit(0)
+            # return False
 
     def select_device(self):
         """
