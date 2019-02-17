@@ -29,12 +29,13 @@ CHANGELOG - Portuguese - Brazil
 [x] Nova estrutura de pastas.
 [x] Script para tests.
 
-## [3.1.1] - Sem prévia
-### Adicionado
-[] Opção para partições criptografadas (LUKS)
+## [3.1.1] - 2019-02-17
+### Alterado
+[x] Corrigindo bugs.
 
 ## [3.1.2] - Sem prévia
 ### Alterado
+[] Opção para partições criptografadas (LUKS)
 [] Path - Melhoramento da estrutura do código.
 
 ## [4.0.0] - Sem prévia

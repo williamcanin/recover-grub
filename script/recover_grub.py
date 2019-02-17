@@ -69,7 +69,7 @@ class RecoverGrub_Engine(RecoverGrub_UI):
               'appconfig': '/etc/recover-grub.json',
               'execdir': '/usr/local/bin/',
               'python_version': 3,
-              'appversion': '3.1.0',
+              'appversion': '3.1.1',
               'mount_dir': '/mnt',
               'name_crypto_open': 'filesystem2',
               'crypto_type': 'crypto_LUKS',
@@ -404,7 +404,7 @@ credits    Print the {self.config['appname']} credits.
 
             if not isfile(self.config['appconfig']):
                 self.create_config(self.config['appconfig'], 'false', 'false',
-                                   self.select_device)
+                                   self.select_device())
 
             if self.read_config(self.config['appconfig'])['status']['mounted'] == 'true':
                 self.printColor('print', self._warning,
