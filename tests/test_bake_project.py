@@ -29,7 +29,7 @@ class Tests_RecoverGrub(TestCase):
 
     def test_get_distro(self):
         distro_current = self.engine.get_distro('/etc/os-release', 'NAME')
-        distros = ['Ubuntu', 'Arch Linux', 'Fedora', 'Debian']
+        distros = ['Ubuntu', 'Arch Linux', 'Manjaro', 'Fedora', 'Debian', 'Linux Mint']
         self.assertIn(distro_current, distros)
 
     def test_select_device(self):
