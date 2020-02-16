@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-from script.recover_grub import RecoverGrub_Engine
+from src.recover_grub import RecoverGrub_Engine
 from unittest import TestCase, main
+# from tests import __tempdir__
 # from pdb import set_trace
 
 
@@ -20,28 +21,20 @@ class Tests_RecoverGrub(TestCase):
         self.assertEqual(self.engine.python_version_required(3), True)
 
     def test_select_type_partition(self):
-        self.assertIn(self.engine.select_type_partition(), ['ext', 'None'])
+        self.assertIn(self.engine.select_type_partition(), ['ext', 'btrfs', 'None'])
 
     def test_get_distro(self):
         distro_current = self.engine.get_distro('/etc/os-release', 'NAME')
-        self.assertEqual(distro_current, 'Ubuntu')
+        distros = ['Ubuntu', 'Arch Linux', 'Fedora', 'Debian']
+        self.assertIn(distro_current, distros)
 
     def test_select_device(self):
         self.assertIn(self.engine.select_device(), ['/dev/sda', 'None'])
 
     def test_verify_user(self):
-        self.assertFalse(self.engine.verify_user(0))
-
-    def test_create_config(self):
-        from os.path import isfile
-        from os import remove
-        conf = '.' + self.engine.config['appconfig']
-        if not isfile(conf):
-            self.engine.create_config(conf, 'false', 'false')
-            created = True
-        self.assertTrue(created)
-        remove(conf)
-
+        with self.assertRaises(SystemExit) as e:
+            self.engine.verify_user(0)
+        self.assertEqual(e.exception.code, 0)
 
 if __name__ == '__main__':
     main()
