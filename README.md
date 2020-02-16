@@ -30,13 +30,13 @@ Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/
       "Recover Grub". To do this, execute the command below:
 
   ~~~shell
-  # curl -L git.io/recover_grub.py -o recover_grub.py
+  # curl -L git.io/recover_grub -o recover_grub.py
   ~~~
 
   ou
 
   ~~~shell
-  # wget git.io/recover_grub.py
+  # wget git.io/recover_grub
   ~~~
 
   **C** -  With "Recover Grub" in hand, the next step is to give permission for the file
@@ -48,14 +48,14 @@ Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/
   ~~~
 
   ~~~shell
-  # ./recover_grub.py device
+  # python recover_grub.py device
   ~~~
 
   **D** - After choosing, the "Recover Grub" will enter the chroot section
       for you to run the Grub recovery command. The command is:
 
   ~~~shell
-  # recover_grub.py start
+  # python recover_grub.py start
   ~~~
 
   **E** - The "Recover Grub" is very intuitive, after finishing, it will say to
@@ -80,13 +80,13 @@ Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/
 
 ~~~shell
    git clone https://github.com/williamcanin/recover-grub.git; cd recover-grub
-   python3 -m env
+   python -m venv venv
 ~~~
 
   B - Enable virtual machine:
 
   ~~~shell
-   . env/bin/activate
+   . venv/bin/activate
   ~~~
 
   **Tests:**

@@ -29,13 +29,13 @@ Read in [English](https://github.com/williamcanin/recover-grub/blob/master/READM
       "Recover Grub". Para isso, execute o comando abaixo:
 
   ~~~shell
-  # curl -L git.io/recover_grub.py -o recover_grub.py
+  # curl -L git.io/recover_grub -o recover_grub.py
   ~~~
 
   ou
 
   ~~~shell
-  # wget git.io/recover_grub.py
+  # wget git.io/recover_grub
   ~~~
 
   **C** -  Com "Recuperar Grub" na mão, o próximo passo é dar permissão de para o
@@ -47,14 +47,14 @@ Read in [English](https://github.com/williamcanin/recover-grub/blob/master/READM
   ~~~
 
   ~~~shell
-  # ./recover_grub.py device
+  # python recover_grub.py device
   ~~~
 
   **D** - Após escolher, o "Recover Grub" irá entrar na seção de chroot
       para você executar o comando de recuperação do Grub. O comando é:
 
   ~~~shell
-  # recover_grub.py start
+  # python recover_grub.py start
   ~~~
 
   **E** - O "Recover Grub" é bem intuitivo, após terminar, ele irá dizer para
@@ -79,13 +79,13 @@ Read in [English](https://github.com/williamcanin/recover-grub/blob/master/READM
 
   ~~~shell
    git clone https://github.com/williamcanin/recover-grub.git; cd recover-grub
-   python3 -m env
+   python -m venv venv
   ~~~
 
   B - Ativar máquina virtual:
 
   ~~~shell
-   . env/bin/activate
+   . venv/bin/activate
   ~~~
 
   **Testes:**
