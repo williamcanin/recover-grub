@@ -1,8 +1,8 @@
-# Recover Grub ![An image](https://raw.githubusercontent.com/williamcanin/recover-grub/master/logo/recover-grub-64x64.png)
+# Recover Grub ![An image](https://raw.githubusercontent.com/williamcanin/recover-grub/master/.github/readme/recover-grub-64x64.png)
 
 ![](https://img.shields.io/github/languages/top/williamcanin/recover-grub.svg?colorB=blue&style=flat-square) ![](https://img.shields.io/github/commit-activity/y/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/last-commit/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/last-commit/williamcanin/recover-grub/master.svg?style=flat-square) ![](https://img.shields.io/github/watchers/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/stars/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/forks/williamcanin/recover-grub.svg?style=flat-square)
 
-***VERSÃO - 3.1.0***
+***VERSÃO - 3.1.1***
 
 Read in [English](https://github.com/williamcanin/recover-grub/blob/master/README.md).
 
@@ -94,11 +94,6 @@ Read in [English](https://github.com/williamcanin/recover-grub/blob/master/READM
   **runtests.sh** irá executar os testes do "Recover Grub" (*script/recover_grub.py*).
 
   O módulo Python usado para os testes é o **unittest**.
-
-  **Deploy:**
-
-  O arquivo **.deploy.git** é um simples shell script para realizar o deploy e merge
-  desse projeto. É intuitivo.
 
 ## [ LICENÇA ]
 
