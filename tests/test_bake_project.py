@@ -17,6 +17,10 @@ class Tests_RecoverGrub(TestCase):
     def test_get_system(self):
         self.assertEqual(self.engine.get_system('os'), 'linux')
 
+    def test_get_system_error(self):
+         with self.assertRaises(AssertionError):
+            self.assertEqual(self.engine.get_system('os'), 'win')
+
     def test_python_version_required(self):
         self.assertEqual(self.engine.python_version_required(3), True)
 
