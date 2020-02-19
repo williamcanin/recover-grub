@@ -1,7 +1,7 @@
 
 # Recover Grub ![An image](https://raw.githubusercontent.com/williamcanin/recover-grub/master/.github/readme/recover-grub-64x64.png)
 
-![](https://img.shields.io/github/languages/top/williamcanin/recover-grub.svg?colorB=blue&style=flat-square) ![](https://img.shields.io/github/commit-activity/y/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/last-commit/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/last-commit/williamcanin/recover-grub/master.svg?style=flat-square) ![](https://img.shields.io/github/watchers/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/stars/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/forks/williamcanin/recover-grub.svg?style=flat-square)
+[![Build Status](https://travis-ci.org/williamcanin/recover-grub.svg?branch=master)](https://travis-ci.org/williamcanin/recover-grub) ![](https://img.shields.io/github/languages/top/williamcanin/recover-grub.svg?colorB=blue&style=flat-square) ![](https://img.shields.io/github/commit-activity/y/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/last-commit/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/last-commit/williamcanin/recover-grub/master.svg?style=flat-square) ![](https://img.shields.io/github/watchers/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/stars/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/forks/williamcanin/recover-grub.svg?style=flat-square)
 
 Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/master/README-PtBr.md).
 
