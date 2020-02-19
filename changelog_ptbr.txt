@@ -30,10 +30,14 @@ CHANGELOG - Portuguese - Brazil
 [x] Script para tests.
 
 ## [3.1.1] - 2019-02-17
-### Alterado
+### Removendo
 [x] Corrigindo bugs.
 
-## [3.1.2] - Sem prévia
+## [3.1.2] - 2020-02-19
+### Removendo
+[x] Nova estrutura do projeto para uma possivel criação de pacote.
+
+## [3.1.3] - Sem prévia
 ### Alterado
 [] Opção para partições criptografadas (LUKS)
 [] Path - Melhoramento da estrutura do código.

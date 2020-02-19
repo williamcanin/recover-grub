@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from src.recover_grub import RecoverGrub_Engine
+from recover_grub.recover_grub import RecoverGrub_Engine
 from unittest import TestCase, main
 # from tests import __tempdir__
 # from pdb import set_trace
@@ -18,7 +18,7 @@ class Tests_RecoverGrub(TestCase):
         self.assertEqual(self.engine.get_system('os'), 'linux')
 
     def test_get_system_error(self):
-         with self.assertRaises(AssertionError):
+        with self.assertRaises(AssertionError):
             self.assertEqual(self.engine.get_system('os'), 'win')
 
     def test_python_version_required(self):
@@ -39,6 +39,7 @@ class Tests_RecoverGrub(TestCase):
         with self.assertRaises(SystemExit) as e:
             self.engine.verify_user(0)
         self.assertEqual(e.exception.code, 0)
+
 
 if __name__ == '__main__':
     main()
