@@ -2,6 +2,7 @@
 
 from recover_grub.recover_grub import RecoverGrub_Engine
 from unittest import TestCase, main
+from unittest.mock import patch
 # from tests import __tempdir__
 # from pdb import set_trace
 
@@ -24,7 +25,8 @@ class Tests_RecoverGrub(TestCase):
     def test_python_version_required(self):
         self.assertEqual(self.engine.python_version_required(3), True)
 
-    def test_select_type_partition(self):
+    @patch('recover_grub.recover_grub.RecoverGrub_Engine.select_type_partition', return_value='ext')
+    def test_select_type_partition(self, input):
         self.assertIn(self.engine.select_type_partition(), ['ext', 'btrfs', 'None'])
 
     def test_get_distro(self):
@@ -32,9 +34,14 @@ class Tests_RecoverGrub(TestCase):
         distros = ['Ubuntu', 'Arch Linux', 'Manjaro', 'Fedora', 'Debian', 'Linux Mint']
         self.assertIn(distro_current, distros)
 
-    def test_select_device(self):
+    @patch('recover_grub.recover_grub.RecoverGrub_Engine.select_device', return_value='/dev/sda')
+    def test_select_device_correct(self, input):
         self.assertIn(self.engine.select_device(), ['/dev/sda', 'None'])
 
+    @patch('recover_grub.recover_grub.RecoverGrub_Engine.select_device', return_value='None')
+    def test_select_device_none(self, input):
+        self.assertIn(self.engine.select_device(), ['/dev/sda', 'None'])
+        
     def test_verify_user(self):
         with self.assertRaises(SystemExit) as e:
             self.engine.verify_user(0)
