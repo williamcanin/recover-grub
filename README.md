@@ -5,7 +5,7 @@
 
 Leia em [Português - Brasil](https://github.com/williamcanin/recover-grub/blob/master/README-PtBr.md).
 
-***VERSION - 3.1.1***
+Version current: ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/williamcanin/recover-grub?style=flat-square)
 
 ## [ ABOUT ]
 

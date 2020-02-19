@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/williamcanin/recover-grub.svg?branch=master)](https://travis-ci.org/williamcanin/recover-grub) ![](https://img.shields.io/github/languages/top/williamcanin/recover-grub.svg?colorB=blue&style=flat-square) ![](https://img.shields.io/github/commit-activity/y/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/last-commit/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/last-commit/williamcanin/recover-grub/master.svg?style=flat-square) ![](https://img.shields.io/github/watchers/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/stars/williamcanin/recover-grub.svg?style=flat-square) ![](https://img.shields.io/github/forks/williamcanin/recover-grub.svg?style=flat-square)
 
-***VERSÃO - 3.1.1***
+Versão atual: ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/williamcanin/recover-grub?style=flat-square)
 
 Read in [English](https://github.com/williamcanin/recover-grub/blob/master/README.md).
 
