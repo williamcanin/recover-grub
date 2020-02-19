@@ -101,6 +101,6 @@ The Python module used for testing is the **unittest**.
 
 ## [ LICENSE ]
 
-  MIT License (MIT) <https://opensource.org/licenses/MIT>
+MIT License [MIT](https://github.com/williamcanin/recover-grub/blob/master/LICENSE)
 
- ***Since 2016 © Recover Grub. William C. Canin. All rights reserved. ®***
+**Since 2016 © Recover Grub. William C. Canin. All rights reserved. ®***
