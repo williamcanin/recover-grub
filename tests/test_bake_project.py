@@ -13,7 +13,8 @@ class Tests_RecoverGrub(TestCase):
 
     def test_get_device(self):
         device = self.engine.get_device()
-        self.assertIn(device, [['/dev/sda']])
+        for sd in device:
+		    self.assertIn(sd, ['/dev/sda', '/dev/sdb', '/dev/sdc'])
 
     def test_get_system(self):
         self.assertEqual(self.engine.get_system('os'), 'linux')
